@@ -95,6 +95,12 @@ config_option(
     DEFAULT_DISABLED OFF
 )
 
+config_option(
+    KernelX86_64Uintr X86_64_UINTR "X86_64 extension for User-Interrupt"
+    DEFAULT OFF
+    DEPENDS "KernelPlatPC99;KernelArchX86"
+)
+
 config_string(
     KernelMaxRMRREntries MAX_RMRR_ENTRIES
     "Setsthe maximum number of Reserved Memory Region Reporting structures we support \

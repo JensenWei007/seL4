@@ -354,6 +354,13 @@ static BOOT_CODE bool_t try_boot_sys(void)
         printf("Warning: Your kernel was not compiled for the current microarchitecture.\n");
     }
 
+#ifdef CONFIG_X86_64_UINTR
+    if (x86_cpuid_get_identity()->vendor == 0)
+        printf("Your CPU vendor is Intel, but maybe not support UINTR, please check!\n");
+    else
+        printf("Your CPU vendor is not Intel, not support UINTR!");
+#endif
+
     cpuid_007h_edx_t edx;
     edx.words[0] = x86_cpuid_edx(0x7, 0);
     /* see if we can definitively say whether or not we need the skim window by

@@ -822,12 +822,12 @@ LIBSEL4_INLINE_FUNC void seL4_uintr_vector_fd(seL4_Uint64 vector, seL4_Uint32 fl
 
 LIBSEL4_INLINE_FUNC void seL4_uintr_register_sender(seL4_Int32 uvec_fd, seL4_Uint32 flags)
 {
-    UNREACHABLE();
+    x64_uintr_syscall3(seL4_SysUintrRegisterSender, uvec_fd, flags);
 }
 
 LIBSEL4_INLINE_FUNC void seL4_uintr_unregister_sender(seL4_Int32 ipi_index, seL4_Uint32 flags)
 {
-    UNREACHABLE();
+    x64_uintr_syscall3(seL4_SysUintrUnRegisterSender, ipi_index, flags);
 }
 
 LIBSEL4_INLINE_FUNC void seL4_uintr_wait(seL4_Uint64 usec, seL4_Uint32 flags)

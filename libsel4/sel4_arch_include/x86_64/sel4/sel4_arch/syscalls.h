@@ -804,3 +804,49 @@ LIBSEL4_INLINE_FUNC void seL4_SetTLSBase(seL4_Word tls_base)
 }
 #endif /* CONFIG_SET_TLS_BASE_SELF */
 
+#ifdef CONFIG_X86_64_UINTR
+LIBSEL4_INLINE_FUNC void seL4_uintr_register_handler(seL4_Uint64 handler_address, seL4_Uint32 flags)
+{
+    x64_uintr_syscall1(seL4_SysUintrRegisterHandler, handler_address, flags);
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_unregister_handler(seL4_Uint32 flags)
+{
+    x64_uintr_syscall2(seL4_SysUintrUnRegisterHandler, flags);
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_vector_fd(seL4_Uint64 vector, seL4_Uint32 flags)
+{
+    x64_uintr_syscall1(seL4_SysUintrVectorFd, vector, flags);
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_register_sender(seL4_Int32 uvec_fd, seL4_Uint32 flags)
+{
+    UNREACHABLE();
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_unregister_sender(seL4_Int32 ipi_index, seL4_Uint32 flags)
+{
+    UNREACHABLE();
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_wait(seL4_Uint64 usec, seL4_Uint32 flags)
+{
+    x64_uintr_syscall1(seL4_SysUintrWait, usec, flags);
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_register_self(seL4_Uint64 vector, seL4_Uint32 flags)
+{
+    x64_uintr_syscall1(seL4_SysUintrRegisterSelf, vector, flags);
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_alt_stack(void  *sp, size_t size, seL4_Uint32 flags)
+{
+    UNREACHABLE();
+}
+
+LIBSEL4_INLINE_FUNC void seL4_uintr_ipi_fd(seL4_Uint32 flags)
+{
+    x64_uintr_syscall2(seL4_SysUintrIpiFd, flags);
+}
+#endif /* CONFIG_X86_64_UINTR */

@@ -103,4 +103,18 @@
             <syscall name="SetTLSBase"/>
         </config>
     </debug>
+    <uintr>
+        <config>
+            <condition><config var="CONFIG_X86_64_UINTR"/></condition>
+            <syscall name="UintrRegisterHandler"/>
+            <syscall name="UintrUnRegisterHandler"/>
+            <syscall name="UintrVectorFd"/>
+            <syscall name="UintrRegisterSender"/>
+            <syscall name="UintrUnRegisterSender"/>
+            <syscall name="UintrWait"/>
+            <syscall name="UintrRegisterSelf"/>
+            <syscall name="UintrAltStack"/>
+            <syscall name="UintrIpiFd"/>
+        </config>
+    </uintr>
 </syscalls>

@@ -24,12 +24,12 @@ exception_t handle_SysUintrRegisterHandler(void)
     if (is_uintr_receiver(cur))
         return EXCEPTION_SYSCALL_ERROR;
     
-    uintr_upid_ctx *upid_ctx = t->tcbArch.tcbContext.upid_ctx;
+    uintr_upid_ctx *upid_ctx = cur->tcbArch.tcbContext.upid_ctx;
     if (!upid_ctx) {
 		upid_ctx = alloc_upid();
 		if (!upid_ctx)
             return EXCEPTION_SYSCALL_ERROR;
-		t->tcbArch.tcbContext.upid_ctx = upid_ctx;
+        cur->tcbArch.tcbContext.upid_ctx = upid_ctx;
 	}
     return EXCEPTION_NONE;
 }

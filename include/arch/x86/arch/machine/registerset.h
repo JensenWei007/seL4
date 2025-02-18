@@ -10,8 +10,11 @@
 #include <arch/types.h>
 #include <util.h>
 #include <assert.h>
-#include <arch/object/uintr.h>
 #include <mode/machine/registerset.h>
+
+#ifdef CONFIG_X86_64_UINTR
+#include <arch/object/uintr.h>
+#endif
 
 /* Minimum hardware-enforced alignment needed for FPU state. */
 #define MIN_FPU_ALIGNMENT 64

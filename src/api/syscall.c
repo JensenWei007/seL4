@@ -33,6 +33,9 @@
 #ifdef CONFIG_HARDWARE_DEBUG_API
 #include <mode/machine/debug.h>
 #endif
+#ifdef CONFIG_X86_64_UINTR
+#include <arch/object/uintr.h>
+#endif
 
 /* The haskell function 'handleEvent' is split into 'handleXXX' variants
  * for each event causing a kernel entry */
@@ -223,6 +226,31 @@ exception_t handleUnknownSyscall(word_t w)
         current_fault = seL4_Fault_UnknownSyscall_new(w);
         handleFault(NODE_STATE(ksCurThread));
     })
+
+#ifdef CONFIG_X86_64_UINTR
+switch (w) {
+    case SysUintrRegisterHandler:
+        return handle_SysUintrRegisterHandler();
+    case SysUintrUnRegisterHandler:
+        return handle_SysUintrUnRegisterHandler();
+    case SysUintrVectorFd:
+        return handle_SysUintrVectorFd();
+    case SysUintrRegisterSender:
+        return handle_SysUintrRegisterSender();
+    case SysUintrUnRegisterSender:
+        return handle_SysUintrUnRegisterSender();
+    case SysUintrWait:
+        return handle_SysUintrWait();
+    case SysUintrRegisterSelf:
+        return handle_SysUintrRegisterSelf();
+    case SysUintrAltStack:
+        return handle_SysUintrAltStack();
+    case SysUintrIpiFd:
+        return handle_SysUintrIpiFd();
+    default:
+        break; /* syscall is not for uintr */
+    } /* end switch(w) */
+#endif /* CONFIG_X86_64_UINTR */
 
     schedule();
     activateThread();

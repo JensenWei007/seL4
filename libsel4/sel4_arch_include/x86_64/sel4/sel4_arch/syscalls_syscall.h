@@ -223,7 +223,7 @@ LIBSEL4_INLINE_FUNC void x64_uintr_syscall2(seL4_Word sys, seL4_Uint32 flags)
         "movq   %%rbx, %%rsp        \n"
         :
         : "d"(sys),
-        "D"(flags),
+        "D"(flags)
         : "%rcx", "%rbx", "%r11"
     );
 }

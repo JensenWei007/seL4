@@ -18,6 +18,15 @@
             <syscall name="Reply"     />
             <syscall name="Yield"     />
             <syscall name="NBRecv"    />
+            <syscall name="UintrRegisterHandler"/>
+            <syscall name="UintrUnRegisterHandler"/>
+            <syscall name="UintrVectorFd"/>
+            <syscall name="UintrRegisterSender"/>
+            <syscall name="UintrUnRegisterSender"/>
+            <syscall name="UintrWait"/>
+            <syscall name="UintrRegisterSelf"/>
+            <syscall name="UintrAltStack"/>
+            <syscall name="UintrIpiFd"/>
         </config>
     </api-master>
     <api-mcs>
@@ -33,6 +42,15 @@
             <syscall name="Wait"      />
             <syscall name="NBWait"    />
             <syscall name="Yield"     />
+            <syscall name="UintrRegisterHandler"/>
+            <syscall name="UintrUnRegisterHandler"/>
+            <syscall name="UintrVectorFd"/>
+            <syscall name="UintrRegisterSender"/>
+            <syscall name="UintrUnRegisterSender"/>
+            <syscall name="UintrWait"/>
+            <syscall name="UintrRegisterSelf"/>
+            <syscall name="UintrAltStack"/>
+            <syscall name="UintrIpiFd"/>
         </config>
     </api-mcs>
     <!-- Syscalls on the unknown syscall path. These definitions will be wrapped in #if condition -->
@@ -103,18 +121,4 @@
             <syscall name="SetTLSBase"/>
         </config>
     </debug>
-    <uintr>
-        <config>
-            <condition><config var="CONFIG_X86_64_UINTR"/></condition>
-            <syscall name="UintrRegisterHandler"/>
-            <syscall name="UintrUnRegisterHandler"/>
-            <syscall name="UintrVectorFd"/>
-            <syscall name="UintrRegisterSender"/>
-            <syscall name="UintrUnRegisterSender"/>
-            <syscall name="UintrWait"/>
-            <syscall name="UintrRegisterSelf"/>
-            <syscall name="UintrAltStack"/>
-            <syscall name="UintrIpiFd"/>
-        </config>
-    </uintr>
 </syscalls>

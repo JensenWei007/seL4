@@ -30,7 +30,3 @@ typedef uint64_t timestamp_t;
 struct list_head {
 	struct list_head *next, *prev;
 };
-
-typedef struct refcount_struct {
-	atomic_t refs;
-} refcount_t;

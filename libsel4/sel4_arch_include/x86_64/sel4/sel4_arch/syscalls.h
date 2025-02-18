@@ -840,9 +840,8 @@ LIBSEL4_INLINE_FUNC void seL4_uintr_register_self(seL4_Uint64 vector, seL4_Uint3
     x64_uintr_syscall1(seL4_SysUintrRegisterSelf, vector, flags);
 }
 
-LIBSEL4_INLINE_FUNC void seL4_uintr_alt_stack(void  *sp, size_t size, seL4_Uint32 flags)
+LIBSEL4_INLINE_FUNC void seL4_uintr_alt_stack(void  *sp, seL4_Uint64 size, seL4_Uint32 flags)
 {
-    UNREACHABLE();
 }
 
 LIBSEL4_INLINE_FUNC void seL4_uintr_ipi_fd(seL4_Uint32 flags)

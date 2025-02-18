@@ -4,11 +4,16 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
+#pragma once
+
 #include <api/failures.h>
 #include <arch/types.h>
 #include <arch/model/statedata.h>
 // TODOWJX: 可能引不到，需要引的是arch外边的那个
 #include <object/structures.h>
+
+#define __aligned(x) __attribute__((aligned(x)))
+#define __packed    __attribute__((packed))
 
 /* Syscall register handler flags */
 #define UINTR_HANDLER_FLAG_WAITING_NONE		0x0
@@ -37,9 +42,9 @@ struct uintr_upid_ctx {
 	uint64_t uvec_mask;			/* track registered vectors per bit */
 	struct uintr_upid *upid;
 	/* TODO: Change to kernel kref api */
-	refcount_t refs;
-	bool receiver_active;		/* Flag for UPID being mapped to a receiver */
-	bool waiting;			/* Flag for UPID blocked in the kernel */
+	uint64_t refs;
+	bool_t receiver_active;		/* Flag for UPID being mapped to a receiver */
+	bool_t waiting;			/* Flag for UPID blocked in the kernel */
 	uint32_t waiting_cost;	/* Flags for who pays the waiting cost */
 };
 
@@ -53,7 +58,7 @@ exception_t handle_SysUintrRegisterSelf(void);
 exception_t handle_SysUintrAltStack(void);
 exception_t handle_SysUintrIpiFd(void);
 
-inline bool is_uintr_receiver(tcb_t *t)
+inline bool_t is_uintr_receiver(tcb_t *t)
 {
 	return !!t->tcbArch.tcbContext.upid_activated;
 }
@@ -64,14 +69,14 @@ static struct uintr_upid_ctx *alloc_upid(void)
 	struct uintr_upid_ctx *upid_ctx;
 	struct uintr_upid *upid;
 
-	upid_ctx = malloc(sizeof(*upid_ctx));
+	//upid_ctx = malloc(sizeof(*upid_ctx));
 	if (!upid_ctx)
 		return NULL;
 
-	upid = malloc(sizeof(*upid));
+	//upid = malloc(sizeof(*upid));
 
 	if (!upid) {
-		free(upid_ctx);
+		//free(upid_ctx);
 		return NULL;
 	}
 
@@ -79,7 +84,7 @@ static struct uintr_upid_ctx *alloc_upid(void)
 	upid_ctx->refs = 1;
 	// TODOWJX: change to atomic operation
 	//refcount_set(&upid_ctx->refs, 1);
-	upid_ctx->task = NODE_STATE(ksCurThread);;
+	//upid_ctx->task = NODE_STATE(ksCurThread);;
 	upid_ctx->receiver_active = true;
 	upid_ctx->waiting = false;
 

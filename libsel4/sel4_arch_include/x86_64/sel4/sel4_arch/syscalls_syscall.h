@@ -199,3 +199,46 @@ static inline void x64_sys_null(seL4_Word sys)
         : "%rbx", "%rcx", "%rsi", "%rdi", "%r11"
     );
 }
+
+#ifdef CONFIG_X86_64_UINTR
+LIBSEL4_INLINE_FUNC void x64_uintr_syscall1(seL4_Word sys, seL4_Uint64 arg1, seL4_Uint32 flags)
+{
+    asm volatile(
+        "movq   %%rsp, %%rbx        \n"
+        "syscall                    \n"
+        "movq   %%rbx, %%rsp        \n"
+        :
+        : "d"(sys),
+        "D"(arg1),
+        "S"(flags)
+        : "%rcx", "%rbx", "%r11"
+    );
+}
+
+LIBSEL4_INLINE_FUNC void x64_uintr_syscall2(seL4_Word sys, seL4_Uint32 flags)
+{
+    asm volatile(
+        "movq   %%rsp, %%rbx        \n"
+        "syscall                    \n"
+        "movq   %%rbx, %%rsp        \n"
+        :
+        : "d"(sys),
+        "D"(flags),
+        : "%rcx", "%rbx", "%r11"
+    );
+}
+
+LIBSEL4_INLINE_FUNC void x64_uintr_syscall3(seL4_Word sys, seL4_Int32 arg1, seL4_Uint32 flags)
+{
+    asm volatile(
+        "movq   %%rsp, %%rbx        \n"
+        "syscall                    \n"
+        "movq   %%rbx, %%rsp        \n"
+        :
+        : "d"(sys),
+        "D"(arg1),
+        "S"(flags)
+        : "%rcx", "%rbx", "%r11"
+    );
+}
+#endif /* CONFIG_X86_64_UINTR */

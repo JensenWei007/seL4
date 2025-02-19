@@ -498,6 +498,12 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
     tcb->tcbTimeSlice = CONFIG_TIME_SLICE;
 #endif
 
+#ifdef CONFIG_X86_64_UINTR
+        tcb->uitt_activated = false;
+        tcb->upid_activated = false;
+        tcb->upid_is_alloced = false;
+#endif
+
     Arch_initContext(&tcb->tcbArch.tcbContext);
 
     /* derive a copy of the IPC buffer cap for inserting */

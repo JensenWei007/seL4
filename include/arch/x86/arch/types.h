@@ -27,6 +27,7 @@ typedef word_t dom_t;
 
 typedef uint64_t timestamp_t;
 
-struct list_head {
-	struct list_head *next, *prev;
-};
+// TODOWJX: syscall wait will use this
+//struct list_head {
+//	struct list_head *next, *prev;
+//};

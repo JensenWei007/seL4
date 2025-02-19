@@ -16,8 +16,36 @@
 #include <sel4/sel4_arch/constants.h>
 #include <benchmark/benchmark_utilisation_.h>
 
+struct tcb;
+typedef struct tcb tcb_t;
 #ifdef CONFIG_X86_64_UINTR
-struct uintr_upid_ctx;
+#define __aligned(x) __attribute__((aligned(x)))
+#define __packed    __attribute__((packed))
+/* User Posted Interrupt Descriptor (UPID) */
+struct uintr_upid {
+	struct {
+		uint8_t status;	/* bit 0: ON, bit 1: SN, bit 2-7: reserved */
+		uint8_t reserved1;	/* Reserved */
+		uint8_t nv;		/* Notification vector */
+		uint8_t reserved2;	/* Reserved */
+		uint32_t ndst;	/* Notification destination */
+	} nc __packed;		/* Notification control */
+	uint64_t puir;		/* Posted user interrupt requests */
+} __aligned(64);
+
+
+struct uintr_upid_ctx {
+	// TODOWJX: syscall wait will use this
+	//struct list_head node;
+	tcb_t *task;	/* Receiver task */
+	uint64_t uvec_mask;			/* track registered vectors per bit */
+	struct uintr_upid upid;
+	/* TODO: Change to kernel kref api */
+	uint64_t refs;
+	bool_t receiver_active;		/* Flag for UPID being mapped to a receiver */
+	bool_t waiting;			/* Flag for UPID blocked in the kernel */
+	uint32_t waiting_cost;	/* Flags for who pays the waiting cost */
+};
 #endif
 
 enum irq_state {
@@ -312,14 +340,14 @@ struct tcb {
     /* User Interrupt state*/
 
 	/* Signifies whether the MSRs for that thread are active */
-    uint32_t		uitt_activated:1;
-    uint32_t		upid_activated:1;
+    bool_t		uitt_activated;
+    bool_t		upid_activated;
 
 	/* Pointer to the UPID context for the task */
-	struct uintr_upid_ctx *upid_ctx;
+    bool_t upid_is_alloced;
+	struct uintr_upid_ctx upid_ctx;
 #endif
 };
-typedef struct tcb tcb_t;
 
 #ifdef CONFIG_DEBUG_BUILD
 /* This debug_tcb object is inserted into the 'unused' region of a TCB object

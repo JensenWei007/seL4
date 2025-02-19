@@ -24,9 +24,17 @@
 #define seL4_PageBits           12
 #define seL4_SlotBits           5
 #if CONFIG_XSAVE_SIZE >= 832
+#ifdef CONFIG_X86_64_UINTR
+#define seL4_TCBBits            13
+#else
+#define seL4_TCBBits            12
+#endif
+#else
+#ifdef CONFIG_X86_64_UINTR
 #define seL4_TCBBits            12
 #else
 #define seL4_TCBBits            11
+#endif
 #endif
 #define seL4_EndpointBits       4
 #ifdef CONFIG_KERNEL_MCS

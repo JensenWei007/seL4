@@ -8,10 +8,8 @@
 #include <object/uintr.h>
 #include <api/syscall.h>
 
-
 exception_t handle_SysUintrRegisterHandler(void)
 {
-    /*
     uint64_t handler = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
 
@@ -25,14 +23,10 @@ exception_t handle_SysUintrRegisterHandler(void)
     if (is_uintr_receiver(cur))
         return EXCEPTION_SYSCALL_ERROR;
     
-    uintr_upid_ctx *upid_ctx = cur->tcbArch.tcbContext.upid_ctx;
-    if (!upid_ctx) {
-		//upid_ctx = alloc_upid();
-		if (!upid_ctx)
-            return EXCEPTION_SYSCALL_ERROR;
-        cur->tcbArch.tcbContext.upid_ctx = upid_ctx;
+    if (!cur->upid_is_alloced) {
+		alloc_upid(cur);
 	}
-        */
+
     return EXCEPTION_NONE;
 }
 

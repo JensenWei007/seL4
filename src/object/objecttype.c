@@ -531,6 +531,11 @@ cap_t createObject(object_t t, void *regionBase, word_t userSize, bool_t deviceM
         tcb->tcbTimeSlice = CONFIG_TIME_SLICE;
 #endif
         tcb->tcbDomain = ksCurDomain;
+#ifdef CONFIG_X86_64_UINTR
+        tcb->uitt_activated = false;
+        tcb->upid_activated = false;
+        tcb->upid_is_alloced = false;
+#endif
 #ifndef CONFIG_KERNEL_MCS
         /* Initialize the new TCB to the current core */
         SMP_COND_STATEMENT(tcb->tcbAffinity = getCurrentCPUIndex());

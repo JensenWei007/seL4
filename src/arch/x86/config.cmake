@@ -379,7 +379,6 @@ add_sources(
         object/tcb.c
         object/iospace.c
         object/vcpu.c
-        object/uintr.c
         kernel/vspace.c
         kernel/apic.c
         kernel/xapic.c

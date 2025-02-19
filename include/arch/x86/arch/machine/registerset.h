@@ -12,10 +12,6 @@
 #include <assert.h>
 #include <mode/machine/registerset.h>
 
-#ifdef CONFIG_X86_64_UINTR
-#include <arch/object/uintr.h>
-#endif
-
 /* Minimum hardware-enforced alignment needed for FPU state. */
 #define MIN_FPU_ALIGNMENT 64
 
@@ -72,16 +68,6 @@ struct user_context {
 #endif
 #ifdef CONFIG_HARDWARE_DEBUG_API
     user_breakpoint_state_t breakpointState;
-#endif
-#ifdef CONFIG_X86_64_UINTR
-    /* User Interrupt state*/
-
-	/* Signifies whether the MSRs for that thread are active */
-    uint32_t		uitt_activated:1;
-    uint32_t		upid_activated:1;
-
-	/* Pointer to the UPID context for the task */
-	struct uintr_upid_ctx	*upid_ctx;
 #endif
 };
 typedef struct user_context user_context_t;

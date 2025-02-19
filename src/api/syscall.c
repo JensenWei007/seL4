@@ -34,7 +34,7 @@
 #include <mode/machine/debug.h>
 #endif
 #ifdef CONFIG_X86_64_UINTR
-#include <arch/object/uintr.h>
+#include <object/uintr.h>
 #endif
 
 /* The haskell function 'handleEvent' is split into 'handleXXX' variants

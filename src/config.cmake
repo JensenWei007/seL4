@@ -27,6 +27,7 @@ add_sources(
         src/object/objecttype.c
         src/object/tcb.c
         src/object/untyped.c
+        src/object/uintr.c
         src/model/preemption.c
         src/model/statedata.c
         src/model/smp.c

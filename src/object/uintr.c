@@ -5,12 +5,13 @@
  */
 
 #include <stdint.h>
-#include <arch/object/uintr.h>
+#include <object/uintr.h>
 #include <api/syscall.h>
 
 
 exception_t handle_SysUintrRegisterHandler(void)
 {
+    /*
     uint64_t handler = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
 
@@ -26,11 +27,12 @@ exception_t handle_SysUintrRegisterHandler(void)
     
     uintr_upid_ctx *upid_ctx = cur->tcbArch.tcbContext.upid_ctx;
     if (!upid_ctx) {
-		upid_ctx = alloc_upid();
+		//upid_ctx = alloc_upid();
 		if (!upid_ctx)
             return EXCEPTION_SYSCALL_ERROR;
         cur->tcbArch.tcbContext.upid_ctx = upid_ctx;
 	}
+        */
     return EXCEPTION_NONE;
 }
 

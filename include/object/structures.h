@@ -16,6 +16,10 @@
 #include <sel4/sel4_arch/constants.h>
 #include <benchmark/benchmark_utilisation_.h>
 
+#ifdef CONFIG_X86_64_UINTR
+struct uintr_upid_ctx;
+#endif
+
 enum irq_state {
     IRQInactive  = 0,
     IRQSignal    = 1,
@@ -303,6 +307,16 @@ struct tcb {
 #ifdef CONFIG_BENCHMARK_TRACK_UTILISATION
     /* 16 bytes (12 bytes aarch32) */
     benchmark_util_t benchmark;
+#endif
+#ifdef CONFIG_X86_64_UINTR
+    /* User Interrupt state*/
+
+	/* Signifies whether the MSRs for that thread are active */
+    uint32_t		uitt_activated:1;
+    uint32_t		upid_activated:1;
+
+	/* Pointer to the UPID context for the task */
+	struct uintr_upid_ctx *upid_ctx;
 #endif
 };
 typedef struct tcb tcb_t;

@@ -8,9 +8,11 @@
 
 #include <api/failures.h>
 #include <arch/types.h>
-#include <arch/model/statedata.h>
+//#include <arch/model/statedata.h>
 // TODOWJX: 可能引不到，需要引的是arch外边的那个
 #include <object/structures.h>
+
+typedef struct tcb tcb_t;
 
 #define __aligned(x) __attribute__((aligned(x)))
 #define __packed    __attribute__((packed))
@@ -38,7 +40,7 @@ struct uintr_upid {
 struct uintr_upid_ctx {
 	struct list_head node;
 	// TODOWJX: 可能引不到
-	struct tcb_t *task;	/* Receiver task */
+	tcb_t *task;	/* Receiver task */
 	uint64_t uvec_mask;			/* track registered vectors per bit */
 	struct uintr_upid *upid;
 	/* TODO: Change to kernel kref api */
@@ -60,10 +62,11 @@ exception_t handle_SysUintrIpiFd(void);
 
 inline bool_t is_uintr_receiver(tcb_t *t)
 {
-	return !!t->tcbArch.tcbContext.upid_activated;
+	return !!t->upid_activated;
 }
 
 /* TODO: UPID needs to be allocated by a KPTI compatible allocator */
+/*
 static struct uintr_upid_ctx *alloc_upid(void)
 {
 	struct uintr_upid_ctx *upid_ctx;
@@ -90,3 +93,4 @@ static struct uintr_upid_ctx *alloc_upid(void)
 
 	return upid_ctx;
 }
+*/

@@ -25,6 +25,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     
     if (!cur->upid_is_alloced) {
 		alloc_upid(cur);
+        cur->upid_is_alloced = 1;
 	}
 
     return EXCEPTION_NONE;

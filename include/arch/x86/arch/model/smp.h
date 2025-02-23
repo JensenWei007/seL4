@@ -36,6 +36,11 @@ static inline PURE word_t getCurrentCPUID(void)
     return cpu_mapping.index_to_cpu_id[getCurrentCPUIndex()];
 }
 
+static inline PURE logical_id_t getCurrentLOGID(void)
+{
+    return cpu_mapping.index_to_logical_id[getCurrentCPUIndex()];
+}
+
 static inline bool_t try_arch_atomic_exchange_rlx(void *ptr, void *new_val, void **prev)
 {
     *prev = __atomic_exchange_n((void **) ptr, new_val, __ATOMIC_RELAXED);

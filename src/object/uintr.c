@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <object/uintr.h>
 #include <api/syscall.h>
+#include <arch/machine.h>
+#include <arch/model/smp.h>
 
 exception_t handle_SysUintrRegisterHandler(void)
 {
@@ -27,6 +29,39 @@ exception_t handle_SysUintrRegisterHandler(void)
 		alloc_upid(cur);
         cur->upid_is_alloced = 1;
 	}
+
+    // Here need to disable preemption
+    // fpregs_lock();
+    struct uintr_upid_ctx *upid_ctx = &cur->upid_ctx;
+    upid_ctx->refs += 1;
+    struct uintr_upid *upid = &upid_ctx->upid;
+    upid->nc.nv = UINTR_NOTIFICATION_VECTOR;
+
+#ifdef ENABLE_SMP_SUPPORT
+#ifdef CONFIG_USE_LOGICAL_IDS
+    upid->nc.ndst = (uint32_t)getCurrentLOGID();
+#else
+    upid->nc.ndst = (uint32_t)getCurrentCPUID();
+#endif
+#else
+#ifdef CONFIG_USE_LOGICAL_IDS
+    upid->nc.ndst = (uint32_t)apic_get_logical_id();
+#else
+    upid->nc.ndst = 0;
+#endif
+#endif
+
+    x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
+    x86_wrmsr(MSR_IA32_UINTR_PD, (uint64_t)upid);
+    x86_wrmsr(MSR_IA32_UINTR_STACKADJUST, 128);
+    uint64_t misc_msr = x86_rdmsr(MSR_IA32_UINTR_MISC);
+    misc_msr |= (uint64_t)UINTR_NOTIFICATION_VECTOR << 32;
+    x86_wrmsr(MSR_IA32_UINTR_MISC, misc_msr);
+
+	cur->upid_activated = true;
+
+    // Here we enable preemption
+	// fpregs_unlock();
 
     return EXCEPTION_NONE;
 }

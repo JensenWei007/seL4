@@ -21,6 +21,13 @@ typedef struct tcb tcb_t;
 						UINTR_HANDLER_FLAG_WAITING_RECEIVER)
 #define BIT_ULL(nr)                   (1ULL << (nr))
 
+#define MSR_IA32_UINTR_HANDLER		0x986
+#define MSR_IA32_UINTR_STACKADJUST	0x987
+#define MSR_IA32_UINTR_MISC		0x988	/* 39:32-UINV, 31:0-UITTSZ */
+#define MSR_IA32_UINTR_PD		0x989
+#define UINTR_NOTIFICATION_VECTOR       0xec
+
+
 exception_t handle_SysUintrRegisterHandler(void);
 exception_t handle_SysUintrUnRegisterHandler(void);
 exception_t handle_SysUintrVectorFd(void);
@@ -50,91 +57,12 @@ static void alloc_upid(tcb_t *t)
 	upid_ctx->waiting = false;
 }
 
-static uint32_t xfeature_get_offset(u64 xcomp_bv, int xfeature)
+static inline uint32_t cpu_to_ndst(int32_t cpu)
 {
-	uint32_t offs, i;
+	uint32_t apicid = (u32)apic->cpu_present_to_apicid(cpu);
 
-	/*
-	 * Non-compacted format and legacy features use the cached fixed
-	 * offsets.
-	 */
-	//if (!cpu_feature_enabled(X86_FEATURE_XCOMPACTED))
-		//return xstate_offsets[xfeature];
+	if (!x2apic_enabled())
+		return (apicid << 8) & 0xFF00;
 
-	/*
-	 * Compacted format offsets depend on the actual content of the
-	 * compacted xsave area which is determined by the xcomp_bv header
-	 * field.
-	 */
-	offs = 512 + 64;
-	for_each_extended_xfeature(i, xcomp_bv) {
-		if (xfeature_is_aligned64(i))
-			offs = ALIGN(offs, 64);
-		if (i == xfeature)
-			break;
-		offs += xstate_sizes[i];
-	}
-	return offs;
-}
-
-/*
- * Given an xstate feature nr, calculate where in the xsave
- * buffer the state is.  Callers should ensure that the buffer
- * is valid.
- */
-static void *__raw_xsave_addr(xsave_state_t *xsave, int xfeature_nr)
-{
-	uint64_t xcomp_bv = xsave->header.xcomp_bv;
-
-	return (void *)xsave + xfeature_get_offset(xcomp_bv, xfeature_nr);
-}
-
-void *get_xsave_addr(xsave_state_t *xsave, int32_t xfeature_nr)
-{
-	/*
-	 * This assumes the last 'xsave*' instruction to
-	 * have requested that 'xfeature_nr' be saved.
-	 * If it did not, we might be seeing and old value
-	 * of the field in the buffer.
-	 *
-	 * This can happen because the last 'xsave' did not
-	 * request that this feature be saved (unlikely)
-	 * or because the "init optimization" caused it
-	 * to not be saved.
-	 */
-	if (!(xsave->header.xfeatures & BIT_ULL(xfeature_nr)))
-		return NULL;
-
-	return __raw_xsave_addr(xsave, xfeature_nr);
-}
-
-/*
- * Return a pointer to the xstate for the feature if it should be used, or NULL
- * if the MSRs should be written to directly. To do this safely using the
- * associated read/write helpers are required.
- */
-void *start_update_xsave_msrs(int32_t xfeature_nr)
-{
-	void *xstate;
-
-	// TODOWJX: here should disable premption and irq.
-	//fpregs_lock();
-
-	xstate = get_xsave_addr(&current->thread.fpu.fpstate->regs.xsave, xfeature_nr);
-
-	/*
-	 * If regs are in the init state, they can't be retrieved from
-	 * init_fpstate due to the init optimization, but are not nessarily
-	 * zero. The only option is to restore to make everything live and
-	 * operate on registers. This will clear TIF_NEED_FPU_LOAD.
-	 *
-	 * Otherwise, if not in the init state but TIF_NEED_FPU_LOAD is set,
-	 * operate on the buffer. The registers will be restored before going
-	 * to userspace in any case, but the task might get preempted before
-	 * then, so this possibly saves an xsave.
-	 */
-	if (!xstate)
-		userError("xstate is null!");
-		//fpregs_restore_userregs();
-	return xstate;
+	return apicid;
 }

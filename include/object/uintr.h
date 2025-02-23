@@ -56,13 +56,3 @@ static void alloc_upid(tcb_t *t)
 	upid_ctx->receiver_active = true;
 	upid_ctx->waiting = false;
 }
-
-static inline uint32_t cpu_to_ndst(int32_t cpu)
-{
-	uint32_t apicid = (u32)apic->cpu_present_to_apicid(cpu);
-
-	if (!x2apic_enabled())
-		return (apicid << 8) & 0xFF00;
-
-	return apicid;
-}

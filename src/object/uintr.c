@@ -68,7 +68,41 @@ exception_t handle_SysUintrRegisterHandler(void)
 
 exception_t handle_SysUintrUnRegisterHandler(void)
 {
-    return EXCEPTION_SYSCALL_ERROR;
+    uint32_t flags = getSyscallArg(0, NULL);
+
+    if (flags)
+        return EXCEPTION_SYSCALL_ERROR;
+
+    tcb_t* cur = NODE_STATE(ksCurThread);
+    struct uintr_upid_ctx *upid_ctx = &cur->upid_ctx;
+
+    if (is_uintr_receiver(cur))
+        return EXCEPTION_SYSCALL_ERROR;
+
+    // Here need to disable preemption
+    // fpregs_lock();
+
+    uint64_t misc_msr = x86_rdmsr(MSR_IA32_UINTR_MISC);
+    misc_msr &= UINTR_MASK_1;
+    x86_wrmsr(MSR_IA32_UINTR_MISC, misc_msr);
+    x86_wrmsr(MSR_IA32_UINTR_PD, 0);
+    x86_wrmsr(MSR_IA32_UINTR_RR, 0);
+    x86_wrmsr(MSR_IA32_UINTR_STACKADJUST, 0);
+    x86_wrmsr(MSR_IA32_UINTR_HANDLER, 0);
+
+	cur->upid_activated = false;
+	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid.nc.status);
+
+    // sub and release
+    //put_upid_ref(upid_ctx);
+
+    // Need to add
+	//uintr_remove_task_wait(t);
+    
+    // Here we enable preemption
+	// fpregs_unlock();
+
+    return EXCEPTION_NONE;
 }
 
 exception_t handle_SysUintrVectorFd(void)

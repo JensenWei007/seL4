@@ -13,6 +13,11 @@
 
 typedef struct tcb tcb_t;
 
+/* UPID Notification control status bits */
+#define UINTR_UPID_STATUS_ON		0x0	/* Outstanding notification */
+#define UINTR_UPID_STATUS_SN		0x1	/* Suppressed notification */
+#define UINTR_UPID_STATUS_BLKD		0x7	/* Blocked waiting for kernel */
+
 /* Syscall register handler flags */
 #define UINTR_HANDLER_FLAG_WAITING_NONE		0x0
 #define UINTR_HANDLER_FLAG_WAITING_RECEIVER	0x1000
@@ -21,11 +26,13 @@ typedef struct tcb tcb_t;
 						UINTR_HANDLER_FLAG_WAITING_RECEIVER)
 #define BIT_ULL(nr)                   (1ULL << (nr))
 
+#define MSR_IA32_UINTR_RR		0x985
 #define MSR_IA32_UINTR_HANDLER		0x986
 #define MSR_IA32_UINTR_STACKADJUST	0x987
 #define MSR_IA32_UINTR_MISC		0x988	/* 39:32-UINV, 31:0-UITTSZ */
 #define MSR_IA32_UINTR_PD		0x989
 #define UINTR_NOTIFICATION_VECTOR       0xec
+#define UINTR_MASK_1 0xFFFFFF00FFFFFFFF
 
 
 exception_t handle_SysUintrRegisterHandler(void);
@@ -55,4 +62,9 @@ static void alloc_upid(tcb_t *t)
 	upid_ctx->task = NODE_STATE(ksCurThread);;
 	upid_ctx->receiver_active = true;
 	upid_ctx->waiting = false;
+}
+
+static inline void set_bit(int32_t nr, void *addr)
+{
+	asm("btsl %1,%0" : "+m" (*(uint32_t *)addr) : "Ir" (nr));
 }

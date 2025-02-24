@@ -10,6 +10,34 @@
 #include <arch/machine.h>
 #include <arch/model/smp.h>
 
+static int do_uintr_register_vector(uint64_t uvec, struct uintr_upid_ctx *uvecfd_upid_ctx)
+{
+	struct uintr_upid_ctx *upid_ctx;
+	tcb_t* cur = NODE_STATE(ksCurThread);
+
+	/*
+	 * A vector should only be registered by a task that
+	 * has an interrupt handler registered.
+	 */
+	if (!is_uintr_receiver(cur))
+		return EXCEPTION_SYSCALL_ERROR;
+
+	if (uvec >= 64)
+		return EXCEPTION_SYSCALL_ERROR;
+
+	upid_ctx = &cur->upid_ctx;
+
+	/* Vectors once registered always stay registered */
+	if (!(upid_ctx->uvec_mask & BIT_ULL(uvec)))
+		upid_ctx->uvec_mask |= BIT_ULL(uvec);
+
+	/* uvecfd_upid_ctx should be passed only when an FD is being created */
+	if (uvecfd_upid_ctx)
+		uvecfd_upid_ctx->refs += 1;
+
+	return 0;
+}
+
 exception_t handle_SysUintrRegisterHandler(void)
 {
     uint64_t handler = getSyscallArg(0, NULL);

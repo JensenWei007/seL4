@@ -241,4 +241,18 @@ LIBSEL4_INLINE_FUNC void x64_uintr_syscall3(seL4_Word sys, seL4_Int32 arg1, seL4
         : "%rcx", "%rbx", "%r11"
     );
 }
+
+LIBSEL4_INLINE_FUNC void x64_uintr_syscall4(seL4_Word sys, seL4_Uint64 arg1, seL4_Uint32 flags, seL4_Int64 *id)
+{
+    asm volatile(
+        "movq   %%rsp, %%rbx        \n"
+        "syscall                    \n"
+        "movq   %%rbx, %%rsp        \n"
+        : "=D"(*id)
+        : "d"(sys),
+        "D"(arg1),
+        "S"(flags)
+        : "%rcx", "%rbx", "%r11", "memory"
+    );
+}
 #endif /* CONFIG_X86_64_UINTR */

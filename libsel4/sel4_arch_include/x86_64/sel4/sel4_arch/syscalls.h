@@ -815,9 +815,11 @@ LIBSEL4_INLINE_FUNC void seL4_uintr_unregister_handler(seL4_Uint32 flags)
     x64_uintr_syscall2(seL4_SysUintrUnRegisterHandler, flags);
 }
 
-LIBSEL4_INLINE_FUNC void seL4_uintr_vector_fd(seL4_Uint64 vector, seL4_Uint32 flags)
+LIBSEL4_INLINE_FUNC seL4_Int64 seL4_uintr_vector_fd(seL4_Uint64 vector, seL4_Uint32 flags)
 {
-    x64_uintr_syscall1(seL4_SysUintrVectorFd, vector, flags);
+    seL4_Int64 ret = -1;
+    x64_uintr_syscall4(seL4_SysUintrVectorFd, vector, flags, &ret);
+    return ret;
 }
 
 LIBSEL4_INLINE_FUNC void seL4_uintr_register_sender(seL4_Int32 uvec_fd, seL4_Uint32 flags)

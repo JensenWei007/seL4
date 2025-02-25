@@ -339,13 +339,19 @@ struct tcb {
 #ifdef CONFIG_X86_64_UINTR
     /* User Interrupt state*/
 
-	/* Signifies whether the MSRs for that thread are active */
+    /* Signifies whether the MSRs for that thread are active */
     bool_t		uitt_activated;
     bool_t		upid_activated;
 
-	/* Pointer to the UPID context for the task */
+    /* Pointer to the UPID context for the task */
     bool_t upid_is_alloced;
-	struct uintr_upid_ctx upid_ctx;
+    struct uintr_upid_ctx upid_ctx;
+
+    /* Vector number */
+    uint64_t uvec;
+
+    /* Fd number */
+    int64_t id;
 #endif
 };
 
@@ -467,3 +473,7 @@ isArchCap(cap_t cap)
     return (cap_get_capType(cap) % 2);
 }
 
+static int64_t get_counter(void) {
+    static int64_t counter = 0;
+    return counter++;
+}

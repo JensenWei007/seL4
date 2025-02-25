@@ -502,6 +502,8 @@ BOOT_CODE tcb_t *create_initial_thread(cap_t root_cnode_cap, cap_t it_pd_cap, vp
         tcb->uitt_activated = false;
         tcb->upid_activated = false;
         tcb->upid_is_alloced = false;
+        tcb->uvec = 0;
+        tcb->id = get_counter();
 #endif
 
     Arch_initContext(&tcb->tcbArch.tcbContext);

@@ -9,8 +9,9 @@
 #include <api/syscall.h>
 #include <arch/machine.h>
 #include <arch/model/smp.h>
+#include <machine/registerset.h>
 
-static int do_uintr_register_vector(uint64_t uvec, struct uintr_upid_ctx *uvecfd_upid_ctx)
+static exception_t do_uintr_register_vector(uint64_t uvec)
 {
 	struct uintr_upid_ctx *upid_ctx;
 	tcb_t* cur = NODE_STATE(ksCurThread);
@@ -32,11 +33,13 @@ static int do_uintr_register_vector(uint64_t uvec, struct uintr_upid_ctx *uvecfd
 		upid_ctx->uvec_mask |= BIT_ULL(uvec);
 
 	/* uvecfd_upid_ctx should be passed only when an FD is being created */
-	if (uvecfd_upid_ctx)
-		uvecfd_upid_ctx->refs += 1;
+	upid_ctx->refs += 1;
 
-	return 0;
+    setRegister(cur, badgeRegister, cur->id);
+
+	return EXCEPTION_NONE;
 }
+
 
 exception_t handle_SysUintrRegisterHandler(void)
 {
@@ -135,7 +138,13 @@ exception_t handle_SysUintrUnRegisterHandler(void)
 
 exception_t handle_SysUintrVectorFd(void)
 {
-    return EXCEPTION_SYSCALL_ERROR;
+    uint64_t vector = getSyscallArg(0, NULL);
+    uint32_t flags = getSyscallArg(1, NULL);
+
+    if (flags)
+        return EXCEPTION_SYSCALL_ERROR;
+
+    return do_uintr_register_vector(vector);
 }
 
 exception_t handle_SysUintrRegisterSender(void)

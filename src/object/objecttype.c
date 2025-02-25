@@ -535,6 +535,8 @@ cap_t createObject(object_t t, void *regionBase, word_t userSize, bool_t deviceM
         tcb->uitt_activated = false;
         tcb->upid_activated = false;
         tcb->upid_is_alloced = false;
+        tcb->uvec = 0;
+        tcb->id = get_counter();
 #endif
 #ifndef CONFIG_KERNEL_MCS
         /* Initialize the new TCB to the current core */

@@ -96,6 +96,8 @@ static inline void tcb_queue_insert(tcb_t *tcb, tcb_t *after)
     before->tcbSchedNext = tcb;
 }
 
+tcb_t* getTcbById(int64_t id);
+
 #ifdef CONFIG_DEBUG_BUILD
 void tcbDebugAppend(tcb_t *tcb);
 void tcbDebugRemove(tcb_t *tcb);

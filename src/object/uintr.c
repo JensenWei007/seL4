@@ -208,6 +208,8 @@ exception_t handle_SysUintrRegisterSender(void)
     if (!is_uintr_sender(cur))
 		uintr_set_sender_msrs(cur);
 
+    setRegister(cur, badgeRegister, entry);
+
     return EXCEPTION_NONE;
 }
 

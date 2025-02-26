@@ -535,6 +535,7 @@ cap_t createObject(object_t t, void *regionBase, word_t userSize, bool_t deviceM
         tcb->uitt_activated = false;
         tcb->upid_activated = false;
         tcb->upid_is_alloced = false;
+        tcb->uitt_is_alloced = false;
         tcb->uvec = 0;
         tcb->id = get_counter();
 #endif

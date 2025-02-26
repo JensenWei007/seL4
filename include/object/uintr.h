@@ -26,6 +26,7 @@ typedef struct tcb tcb_t;
 #define UINTR_HANDLER_FLAG_WAITING_ANY		(UINTR_HANDLER_FLAG_WAITING_SENDER | \
 						UINTR_HANDLER_FLAG_WAITING_RECEIVER)
 #define BIT_ULL(nr)                   (1ULL << (nr))
+#define clear_bit(bit, addr)   ((addr)[(bit) / 64] &= ~(1UL << ((bit) % 64)))
 
 #define MSR_IA32_UINTR_RR		0x985
 #define MSR_IA32_UINTR_HANDLER		0x986
@@ -105,4 +106,27 @@ static int32_t find_first_zero_bit(const uint64_t *addr, uint64_t size)
         }
     }
     return 256;
+}
+
+static inline void mark_uitte_invalid(struct uintr_uitt_ctx *uitt_ctx, uint64_t uitt_index)
+{
+	struct uintr_uitt_entry *uitte;
+
+	//mutex_lock(&uitt_ctx->uitt_lock);
+	uitte = &uitt_ctx->uitt[uitt_index];
+	uitte->valid = 0;
+	//mutex_unlock(&uitt_ctx->uitt_lock);
+}
+
+static void free_uitt_entry(struct uintr_uitt_ctx *uitt_ctx, uint64_t entry)
+{
+	uitt_ctx->r_upid_ctx[entry]->refs -=1;
+	if (uitt_ctx->r_upid_ctx[entry]->refs == 0)
+		//free_upid(upid_ctx);
+
+	//mutex_lock(&uitt_ctx->uitt_lock);
+	memset(&uitt_ctx->uitt[entry], 0, sizeof(struct uintr_uitt_entry));
+	//mutex_unlock(&uitt_ctx->uitt_lock);
+
+	clear_bit(entry, (uint64_t *)uitt_ctx->uitt_mask);
 }

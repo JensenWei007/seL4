@@ -215,7 +215,19 @@ exception_t handle_SysUintrRegisterSender(void)
 
 exception_t handle_SysUintrUnRegisterSender(void)
 {
-    return EXCEPTION_SYSCALL_ERROR;
+    int32_t ipi_index = getSyscallArg(0, NULL);
+    uint32_t flags = getSyscallArg(1, NULL);
+
+    if (flags)
+        return EXCEPTION_SYSCALL_ERROR;
+
+    tcb_t* cur = NODE_STATE(ksCurThread);
+    struct uintr_uitt_ctx *uitt_ctx = &cur->uitt_ctx;
+
+    mark_uitte_invalid(uitt_ctx, ipi_index);
+    free_uitt_entry(uitt_ctx, ipi_index);
+
+    return EXCEPTION_NONE;
 }
 
 exception_t handle_SysUintrWait(void)

@@ -147,9 +147,68 @@ exception_t handle_SysUintrVectorFd(void)
     return do_uintr_register_vector(vector);
 }
 
+static void uintr_set_sender_msrs(tcb_t *t)
+{
+	struct uintr_uitt_ctx *uitt_ctx = &t->uitt_ctx;
+
+    x86_wrmsr(MSR_IA32_UINTR_TT, (uint64_t)uitt_ctx->uitt | 1);
+	/* Modify only the relevant bits of the MISC MSR */
+	uint64_t msr64 = x86_rdmsr(MSR_IA32_UINTR_MISC);
+	msr64 &= UINTR_MASK_2;
+	msr64 |= 256;
+	x86_wrmsr(MSR_IA32_UINTR_MISC, msr64);
+
+	t->uitt_activated = true;
+}
+
 exception_t handle_SysUintrRegisterSender(void)
 {
-    return EXCEPTION_SYSCALL_ERROR;
+    int32_t uvec_fd = getSyscallArg(0, NULL);
+    uint32_t flags = getSyscallArg(1, NULL);
+
+    if (flags)
+        return EXCEPTION_SYSCALL_ERROR;
+
+    tcb_t *t = getTcbById(uvec_fd);
+    tcb_t* cur = NODE_STATE(ksCurThread);
+    uint64_t uvec = t->uvec;
+    struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;
+
+    if (!upid_ctx->receiver_active)
+		return EXCEPTION_SYSCALL_ERROR;
+
+    if (!cur->uitt_is_alloced) {
+		alloc_uitt(cur);
+        cur->uitt_is_alloced = 1;
+	}
+
+    struct uintr_uitt_ctx *uitt_ctx = &cur->uitt_ctx;
+    int32_t entry = find_first_zero_bit((uint64_t *)uitt_ctx->uitt_mask, 256);
+    if (entry >= 256)
+		return EXCEPTION_SYSCALL_ERROR;
+
+    set_bit(entry, (uint64_t*)uitt_ctx->uitt_mask);
+
+    // TODOWJX: Here should lock
+    //mutex_lock(&uitt_ctx->uitt_lock);
+
+	struct uintr_uitt_entry *uitte = &uitt_ctx->uitt[entry];
+
+	/* Program the UITT entry */
+	uitte->user_vec = uvec;
+    struct uintr_upid *upid = &upid_ctx->upid;
+	uitte->target_upid_addr = (uint64_t)upid;
+	uitte->valid = 1;
+
+    upid_ctx->refs += 1;
+	uitt_ctx->r_upid_ctx[entry] = upid_ctx;
+
+	//mutex_unlock(&uitt_ctx->uitt_lock);
+
+    if (!is_uintr_sender(cur))
+		uintr_set_sender_msrs(cur);
+
+    return EXCEPTION_NONE;
 }
 
 exception_t handle_SysUintrUnRegisterSender(void)

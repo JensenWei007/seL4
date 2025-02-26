@@ -33,7 +33,6 @@ struct uintr_upid {
 	uint64_t puir;		/* Posted user interrupt requests */
 } __aligned(64);
 
-
 struct uintr_upid_ctx {
 	// TODOWJX: syscall wait will use this
 	//struct list_head node;
@@ -45,6 +44,27 @@ struct uintr_upid_ctx {
 	bool_t receiver_active;		/* Flag for UPID being mapped to a receiver */
 	bool_t waiting;			/* Flag for UPID blocked in the kernel */
 	uint32_t waiting_cost;	/* Flags for who pays the waiting cost */
+};
+
+/* User Interrupt Target Table Entry (UITTE) */
+struct uintr_uitt_entry {
+	uint8_t	valid;			/* bit 0: valid, bit 1-7: reserved */
+	uint8_t	user_vec;
+	uint8_t	reserved[6];
+	uint64_t target_upid_addr;
+} __packed __aligned(16);
+
+/* TODO: Remove uitt from struct names */
+struct uintr_uitt_ctx {
+	struct uintr_uitt_entry uitt[256];
+	/* Protect UITT */
+	// struct mutex uitt_lock;
+	/* TODO: Change to kernel kref api */
+	uint64_t refs;
+	/* track active uitt entries per bit */
+	uint64_t uitt_mask[4];
+	/* TODO: Might be useful to use xarray over here as the MAX size increases */
+	struct uintr_upid_ctx *r_upid_ctx[256];
 };
 #endif
 
@@ -346,6 +366,10 @@ struct tcb {
     /* Pointer to the UPID context for the task */
     bool_t upid_is_alloced;
     struct uintr_upid_ctx upid_ctx;
+
+    /* Pointer to the UITT context for the task */
+    bool_t uitt_is_alloced;
+    struct uintr_uitt_ctx uitt_ctx;
 
     /* Vector number */
     uint64_t uvec;

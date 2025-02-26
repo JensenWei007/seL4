@@ -269,6 +269,29 @@ tcb_queue_t tcbEPDequeue(tcb_t *tcb, tcb_queue_t queue)
     return queue;
 }
 
+tcb_t* getTcbById(int64_t id)
+{
+    tcb_t* ret = NODE_STATE(ksCurThread);
+    if (ret->id == id)
+        return ret;
+    for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
+        for (int32_t j = 0; j<NUM_READY_QUEUES; j++)
+        {
+            tcb_queue_t q = NODE_STATE_ON_CORE(ksReadyQueues[j], cpuIndexToID(i));
+            if (tcb_queue_empty(q))
+                continue;
+            tcb_t *before = q.end;
+            tcb_t *after = NULL;
+            while (unlikely(before != NULL)) {
+                if (before->id == id)
+                    return before;
+                after = before;
+                before = after->tcbSchedPrev;
+            }
+        }
+    return NODE_STATE(ksCurThread);
+}
+
 #ifdef CONFIG_KERNEL_MCS
 
 void tcbReleaseRemove(tcb_t *tcb)

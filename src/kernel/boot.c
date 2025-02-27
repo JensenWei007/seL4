@@ -185,7 +185,7 @@ BOOT_CODE static word_t calculate_rootserver_size(v_region_t it_v_reg, word_t ex
     size += BIT(seL4_MinSchedContextBits); // root sched context
 #endif
     /* for all archs, seL4_PageTable Bits is the size of all non top-level paging structures */
-    return size + arch_get_n_paging(it_v_reg) * BIT(seL4_PageTableBits);
+    return size + arch_get_n_paging(it_v_reg) * BIT(seL4_PageTableBits) + 3 * 4096;
 }
 
 BOOT_CODE static void maybe_alloc_extra_bi(word_t cmp_size_bits, word_t extra_bi_size_bits)
@@ -237,6 +237,7 @@ BOOT_CODE static void create_rootserver_objects(pptr_t start, v_region_t it_v_re
 
     /* TCBs on aarch32 can be larger than page tables in certain configs */
 #if seL4_TCBBits >= seL4_PageTableBits
+    alloc_rootserver_obj(12,3); // BIT(12) is 4096, rootserver_mem.end should add this empty size
     rootserver.tcb = alloc_rootserver_obj(seL4_TCBBits, 1);
 #endif
 

@@ -423,5 +423,9 @@ BOOT_CODE bool_t init_cpu(
     }
 #endif
 
+#ifdef CONFIG_X86_64_UINTR
+    write_cr4(read_cr4() | X86_CR4_UINTR);
+#endif
+
     return true;
 }

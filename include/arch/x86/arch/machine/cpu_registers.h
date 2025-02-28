@@ -18,6 +18,7 @@
 #define CR4_VMXE            BIT(13) /* Enable VMX mode. */
 #define CR4_SMEP            BIT(20) /* Supervisor Mode Execution Prevention. */
 #define CR4_SMAP            BIT(21) /* Supervisor Mode Access Prevention. */
+#define X86_CR4_UINTR       BIT(25)
 
 #define FLAGS_TF            BIT(8)  /* Trap Flag */
 #define FLAGS_IF            BIT(9)  /* Interrupt enable Flag */

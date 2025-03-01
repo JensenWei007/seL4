@@ -13,6 +13,10 @@
 
 #include <api/syscall.h>
 
+#ifdef CONFIG_X86_64_UINTR
+void static switch_uintr_return(void);
+#endif
+
 #ifdef CONFIG_VTX
 static void NORETURN vmlaunch_failed(word_t failInvalid, word_t failValid)
 {
@@ -208,6 +212,9 @@ static void NORETURN restore_vmx(void)
 
 void VISIBLE NORETURN restore_user_context(void)
 {
+#ifdef CONFIG_X86_64_UINTR
+    switch_uintr_return();
+#endif
     NODE_UNLOCK_IF_HELD;
     c_exit_hook();
 

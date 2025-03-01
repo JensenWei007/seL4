@@ -121,6 +121,7 @@ fastpath_mi_check(word_t msgInfo)
 
 static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t msgInfo, tcb_t *cur_thread)
 {
+    UNREACHABLE();
     if (config_set(CONFIG_SYSENTER) && config_set(CONFIG_HARDWARE_DEBUG_API)
         && ((getRegister(NODE_STATE(ksCurThread), FLAGS) & FLAGS_TF) != 0)) {
         /* If single stepping using sysenter we need to do a return using iret to avoid

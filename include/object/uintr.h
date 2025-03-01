@@ -130,3 +130,46 @@ static void free_uitt_entry(struct uintr_uitt_ctx *uitt_ctx, uint64_t entry)
 
 	clear_bit(entry, (uint64_t *)uitt_ctx->uitt_mask);
 }
+
+void static switch_uintr_prepare(void)
+{
+	tcb_t* cur = NODE_STATE(ksCurThread);
+	if (!is_uintr_receiver(cur))
+		return;
+	struct uintr_upid_ctx *upid_ctx = &cur->upid_ctx;
+	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid.nc.status);
+}
+
+void static switch_uintr_return(void)
+{
+	tcb_t* cur = NODE_STATE(ksCurThread);
+	struct uintr_upid *upid;
+
+	if (!is_uintr_receiver(cur))
+		return;
+
+	uint64_t misc_msr = x86_rdmsr(MSR_IA32_UINTR_MISC);
+	if (!(misc_msr & UINTR_MASK_1)) {
+		misc_msr |= (uint64_t)UINTR_NOTIFICATION_VECTOR << 32;
+		x86_wrmsr(MSR_IA32_UINTR_MISC, misc_msr);
+	}
+
+	upid = &cur->upid_ctx.upid;
+#ifdef ENABLE_SMP_SUPPORT
+#ifdef CONFIG_USE_LOGICAL_IDS
+	upid->nc.ndst = (uint32_t)getCurrentLOGID();
+#else
+	upid->nc.ndst = (uint32_t)getCurrentCPUID();
+#endif
+#else
+#ifdef CONFIG_USE_LOGICAL_IDS
+	upid->nc.ndst = (uint32_t)apic_get_logical_id();
+#else
+	upid->nc.ndst = 0;
+#endif
+#endif	
+	clear_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid->nc.status);
+
+	//if (READ_ONCE(upid->puir))
+		//apic->send_IPI_self(UINTR_NOTIFICATION_VECTOR);
+}

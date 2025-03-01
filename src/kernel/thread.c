@@ -21,6 +21,10 @@
 #include <machine/registerset.h>
 #include <linker.h>
 
+#ifdef CONFIG_X86_64_UINTR
+#include <object/uintr.h>
+#endif
+
 static seL4_MessageInfo_t
 transferCaps(seL4_MessageInfo_t info,
              endpoint_t *endpoint, tcb_t *receiver,
@@ -452,6 +456,9 @@ void switchToThread(tcb_t *thread)
 #endif
     Arch_switchToThread(thread);
     tcbSchedDequeue(thread);
+#ifdef CONFIG_X86_64_UINTR
+    switch_uintr_prepare();
+#endif
     NODE_STATE(ksCurThread) = thread;
 }
 

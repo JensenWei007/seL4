@@ -227,31 +227,6 @@ exception_t handleUnknownSyscall(word_t w)
         handleFault(NODE_STATE(ksCurThread));
     })
 
-#ifdef CONFIG_X86_64_UINTR
-switch (w) {
-    case SysUintrRegisterHandler:
-        return handle_SysUintrRegisterHandler();
-    case SysUintrUnRegisterHandler:
-        return handle_SysUintrUnRegisterHandler();
-    case SysUintrVectorFd:
-        return handle_SysUintrVectorFd();
-    case SysUintrRegisterSender:
-        return handle_SysUintrRegisterSender();
-    case SysUintrUnRegisterSender:
-        return handle_SysUintrUnRegisterSender();
-    case SysUintrWait:
-        return handle_SysUintrWait();
-    case SysUintrRegisterSelf:
-        return handle_SysUintrRegisterSelf();
-    case SysUintrAltStack:
-        return handle_SysUintrAltStack();
-    case SysUintrIpiFd:
-        return handle_SysUintrIpiFd();
-    default:
-        break; /* syscall is not for uintr */
-    } /* end switch(w) */
-#endif /* CONFIG_X86_64_UINTR */
-
     schedule();
     activateThread();
 
@@ -649,6 +624,43 @@ exception_t handleSyscall(syscall_t syscall)
             handleYield();
             break;
 
+#ifdef CONFIG_X86_64_UINTR
+        case SysUintrRegisterHandler:
+            handle_SysUintrRegisterHandler();
+            break;
+
+        case SysUintrUnRegisterHandler:
+            handle_SysUintrUnRegisterHandler();
+            break;
+
+        case SysUintrVectorFd:
+            handle_SysUintrVectorFd();
+            break;
+
+        case SysUintrRegisterSender:
+            handle_SysUintrRegisterSender();
+            break;
+
+        case SysUintrUnRegisterSender:
+            handle_SysUintrUnRegisterSender();
+            break;
+
+        case SysUintrWait:
+            handle_SysUintrWait();
+            break;
+
+        case SysUintrRegisterSelf:
+            handle_SysUintrRegisterSelf();
+            break;
+
+        case SysUintrAltStack:
+            handle_SysUintrAltStack();
+            break;
+
+        case SysUintrIpiFd:
+            handle_SysUintrIpiFd();
+            break;
+#endif /* CONFIG_X86_64_UINTR */
         default:
             fail("Invalid syscall");
         }

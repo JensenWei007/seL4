@@ -203,69 +203,78 @@ static inline void x64_sys_null(seL4_Word sys)
 #ifdef CONFIG_X86_64_UINTR
 LIBSEL4_INLINE_FUNC void x64_uintr_syscall1(seL4_Word sys, seL4_Uint64 arg1, seL4_Uint32 flags)
 {
+    register seL4_Uint64 mr0 asm("r10") = arg1;
+    register seL4_Uint32 mr1 asm("r8") = flags;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
         "movq   %%rbx, %%rsp        \n"
         :
         : "d"(sys),
-        "D"(arg1),
-        "S"(flags)
+        "r"(mr0),
+        "r"(mr1)
         : "%rcx", "%rbx", "%r11"
     );
 }
 
 LIBSEL4_INLINE_FUNC void x64_uintr_syscall2(seL4_Word sys, seL4_Uint32 flags)
 {
+    register seL4_Uint32 mr0 asm("r10") = flags;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
         "movq   %%rbx, %%rsp        \n"
         :
         : "d"(sys),
-        "D"(flags)
+        "r"(mr0)
         : "%rcx", "%rbx", "%r11"
     );
 }
 
 LIBSEL4_INLINE_FUNC void x64_uintr_syscall3(seL4_Word sys, seL4_Int32 arg1, seL4_Uint32 flags)
 {
+    register seL4_Int32 mr0 asm("r10") = arg1;
+    register seL4_Uint32 mr1 asm("r8") = flags;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
         "movq   %%rbx, %%rsp        \n"
         :
         : "d"(sys),
-        "D"(arg1),
-        "S"(flags)
+        "r"(mr0),
+        "r"(mr1)
         : "%rcx", "%rbx", "%r11"
     );
 }
 
 LIBSEL4_INLINE_FUNC void x64_uintr_syscall4(seL4_Word sys, seL4_Uint64 arg1, seL4_Uint32 flags, seL4_Int64 *id)
 {
+    register seL4_Uint64 mr0 asm("r10") = arg1;
+    register seL4_Uint32 mr1 asm("r8") = flags;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
         "movq   %%rbx, %%rsp        \n"
         : "=D"(*id)
         : "d"(sys),
-        "D"(arg1),
-        "S"(flags)
+        "r"(mr0),
+        "r"(mr1)
         : "%rcx", "%rbx", "%r11", "memory"
     );
 }
 
 LIBSEL4_INLINE_FUNC void x64_uintr_syscall5(seL4_Word sys, seL4_Int32 arg1, seL4_Uint32 flags, seL4_Int64 *id)
 {
+    register seL4_Int32 mr0 asm("r10") = arg1;
+    register seL4_Uint32 mr1 asm("r8") = flags;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
         "movq   %%rbx, %%rsp        \n"
         : "=D"(*id)
         : "d"(sys),
-        "D"(arg1),
-        "S"(flags)
+        "r"(mr0),
+        "r"(mr1)
         : "%rcx", "%rbx", "%r11", "memory"
     );
 }

@@ -35,6 +35,7 @@ static exception_t do_uintr_register_vector(uint64_t uvec)
 	/* uvecfd_upid_ctx should be passed only when an FD is being created */
 	upid_ctx->refs += 1;
 
+    printf("call vectorfd, ret: %lu \n", (unsigned long)cur->id);
     setRegister(cur, badgeRegister, cur->id);
 
 	return EXCEPTION_NONE;
@@ -45,6 +46,8 @@ exception_t handle_SysUintrRegisterHandler(void)
 {
     uint64_t handler = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
+
+    printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
 
     if (flags & ~UINTR_HANDLER_FLAG_WAITING_ANY)
         return EXCEPTION_SYSCALL_ERROR;
@@ -81,6 +84,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     upid->nc.ndst = 0;
 #endif
 #endif
+    printf("register hanl, upid: %lx \n",(unsigned long)upid);
 
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
     x86_wrmsr(MSR_IA32_UINTR_PD, (uint64_t)upid);
@@ -166,6 +170,8 @@ exception_t handle_SysUintrRegisterSender(void)
     int32_t uvec_fd = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
 
+    printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
+
     if (flags)
         return EXCEPTION_SYSCALL_ERROR;
 
@@ -199,6 +205,8 @@ exception_t handle_SysUintrRegisterSender(void)
     struct uintr_upid *upid = &upid_ctx->upid;
 	uitte->target_upid_addr = (uint64_t)upid;
 	uitte->valid = 1;
+
+    printf("regsend, target_upid_add: %lx \n", (unsigned long)uitte->target_upid_addr);
 
     upid_ctx->refs += 1;
 	uitt_ctx->r_upid_ctx[entry] = upid_ctx;

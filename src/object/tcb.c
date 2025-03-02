@@ -271,9 +271,13 @@ tcb_queue_t tcbEPDequeue(tcb_t *tcb, tcb_queue_t queue)
 
 tcb_t* getTcbById(int64_t id)
 {
-    tcb_t* ret = NODE_STATE(ksCurThread);
-    if (ret->id == id)
-        return ret;
+    for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
+    {
+        tcb_t* ret = NODE_STATE_ON_CORE(ksCurThread, cpuIndexToID(i));
+        printf("cur id: %i \n",(int)ret->id);
+        if (ret->id == id)
+            return ret;
+    }
     for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
         for (int32_t j = 0; j<NUM_READY_QUEUES; j++)
         {
@@ -283,6 +287,7 @@ tcb_t* getTcbById(int64_t id)
             tcb_t *before = q.end;
             tcb_t *after = NULL;
             while (unlikely(before != NULL)) {
+                printf("before id: %i \n",(int)before->id);
                 if (before->id == id)
                     return before;
                 after = before;

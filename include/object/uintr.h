@@ -108,6 +108,12 @@ static int32_t find_first_zero_bit(const uint64_t *addr, uint64_t size)
     return 256;
 }
 
+static uint64_t TransAddr(const void *before)
+{
+	// TODOWJX: change to virt addr,now is paddr
+	return addrFromPPtr(before);
+}
+
 static inline void mark_uitte_invalid(struct uintr_uitt_ctx *uitt_ctx, uint64_t uitt_index)
 {
 	struct uintr_uitt_entry *uitte;
@@ -170,6 +176,7 @@ void static switch_uintr_return(void)
 #endif	
 	clear_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid->nc.status);
 
-	//if (READ_ONCE(upid->puir))
+	if (upid->puir)
+		printf("puir is true ,should send ipi\n");
 		//apic->send_IPI_self(UINTR_NOTIFICATION_VECTOR);
 }

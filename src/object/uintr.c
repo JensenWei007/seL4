@@ -84,10 +84,10 @@ exception_t handle_SysUintrRegisterHandler(void)
     upid->nc.ndst = 0;
 #endif
 #endif
-    printf("register hanl, upid: %lx \n",(unsigned long)upid);
+    printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
 
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
-    x86_wrmsr(MSR_IA32_UINTR_PD, (uint64_t)upid);
+    x86_wrmsr(MSR_IA32_UINTR_PD, TransAddr(upid));
     x86_wrmsr(MSR_IA32_UINTR_STACKADJUST, 128);
     uint64_t misc_msr = x86_rdmsr(MSR_IA32_UINTR_MISC);
     misc_msr |= (uint64_t)UINTR_NOTIFICATION_VECTOR << 32;
@@ -103,6 +103,7 @@ exception_t handle_SysUintrRegisterHandler(void)
 
 exception_t handle_SysUintrUnRegisterHandler(void)
 {
+    printf("call unregister handler\n");
     uint32_t flags = getSyscallArg(0, NULL);
 
     if (flags)
@@ -153,9 +154,17 @@ exception_t handle_SysUintrVectorFd(void)
 
 static void uintr_set_sender_msrs(tcb_t *t)
 {
+    printf("will set_sender,size:%lx\n", sizeof(struct uintr_uitt_entry));
 	struct uintr_uitt_ctx *uitt_ctx = &t->uitt_ctx;
+    struct uintr_uitt_entry *uitt = &uitt_ctx->uitt[0];
 
-    x86_wrmsr(MSR_IA32_UINTR_TT, (uint64_t)uitt_ctx->uitt | 1);
+    printf("offset: %lx\n", (unsigned long)PPTR_BASE_OFFSET);
+
+    printf("uitt 0 addr: %lx\n", (unsigned long)uitt);
+    printf("uitt 0 anoaddr 1: %lx\n", (unsigned long)addrFromPPtr(uitt));
+    //printf("uitt 0 anoaddr 2: %lx\n", (unsigned long)addrFromKPPtr(uitt));
+
+    x86_wrmsr(MSR_IA32_UINTR_TT, TransAddr(uitt) | 1);
 	/* Modify only the relevant bits of the MISC MSR */
 	uint64_t msr64 = x86_rdmsr(MSR_IA32_UINTR_MISC);
 	msr64 &= UINTR_MASK_2;
@@ -181,7 +190,10 @@ exception_t handle_SysUintrRegisterSender(void)
     struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;
 
     if (!upid_ctx->receiver_active)
+    {
+        printf("task is not receiver\n");
 		return EXCEPTION_SYSCALL_ERROR;
+    }
 
     if (!cur->uitt_is_alloced) {
 		alloc_uitt(cur);
@@ -203,10 +215,10 @@ exception_t handle_SysUintrRegisterSender(void)
 	/* Program the UITT entry */
 	uitte->user_vec = uvec;
     struct uintr_upid *upid = &upid_ctx->upid;
-	uitte->target_upid_addr = (uint64_t)upid;
+	uitte->target_upid_addr = TransAddr(upid);
 	uitte->valid = 1;
 
-    printf("regsend, target_upid_add: %lx \n", (unsigned long)uitte->target_upid_addr);
+    printf("regsend, target_upid_add: %lx ,entry: %lu\n", (unsigned long)uitte->target_upid_addr, (unsigned long)entry);
 
     upid_ctx->refs += 1;
 	uitt_ctx->r_upid_ctx[entry] = upid_ctx;

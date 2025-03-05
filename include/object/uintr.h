@@ -59,7 +59,7 @@ inline bool_t is_uintr_sender(tcb_t *t)
 }
 
 /* TODO: UPID needs to be allocated by a KPTI compatible allocator */
-static void alloc_upid(tcb_t *t)
+static void alloc_upid(tcb_t *t, uint64_t addr)
 {
 	struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;
 	memset(upid_ctx, 0, sizeof(struct uintr_upid_ctx));
@@ -67,6 +67,7 @@ static void alloc_upid(tcb_t *t)
 	// TODOWJX: change to atomic operation
 	// refcount_set(&upid_ctx->refs, 1);
 	upid_ctx->refs = 1;
+	upid_ctx->upid = (struct uintr_upid*)addr;
 	upid_ctx->task = NODE_STATE(ksCurThread);;
 	upid_ctx->receiver_active = true;
 	upid_ctx->waiting = false;
@@ -77,13 +78,14 @@ static inline void set_bit(int32_t nr, void *addr)
 	asm("btsl %1,%0" : "+m" (*(uint32_t *)addr) : "Ir" (nr));
 }
 
-static void alloc_uitt(tcb_t *t)
+static void alloc_uitt(tcb_t *t, uint64_t addr)
 {
 	struct uintr_uitt_ctx *uitt_ctx = &t->uitt_ctx;
 	memset(uitt_ctx, 0, sizeof(struct uintr_uitt_ctx));
 
 	// TODOWJX: change to atomic operation
 	// refcount_set(&upid_ctx->refs, 1);
+	uitt_ctx->uitt = (struct uintr_uitt_entry*)addr;
 	uitt_ctx->refs = 1;
 }
 
@@ -106,12 +108,6 @@ static int32_t find_first_zero_bit(const uint64_t *addr, uint64_t size)
         }
     }
     return 256;
-}
-
-static uint64_t TransAddr(const void *before)
-{
-	// TODOWJX: change to virt addr,now is paddr
-	return addrFromPPtr(before);
 }
 
 static inline void mark_uitte_invalid(struct uintr_uitt_ctx *uitt_ctx, uint64_t uitt_index)
@@ -143,7 +139,7 @@ void static switch_uintr_prepare(void)
 	if (!is_uintr_receiver(cur))
 		return;
 	struct uintr_upid_ctx *upid_ctx = &cur->upid_ctx;
-	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid.nc.status);
+	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid->nc.status);
 }
 
 void static switch_uintr_return(void)
@@ -160,7 +156,7 @@ void static switch_uintr_return(void)
 		x86_wrmsr(MSR_IA32_UINTR_MISC, misc_msr);
 	}
 
-	upid = &cur->upid_ctx.upid;
+	upid = cur->upid_ctx.upid;
 #ifdef ENABLE_SMP_SUPPORT
 #ifdef CONFIG_USE_LOGICAL_IDS
 	upid->nc.ndst = (uint32_t)getCurrentLOGID();

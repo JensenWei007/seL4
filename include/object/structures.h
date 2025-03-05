@@ -38,7 +38,7 @@ struct uintr_upid_ctx {
 	//struct list_head node;
 	tcb_t *task;	/* Receiver task */
 	uint64_t uvec_mask;			/* track registered vectors per bit */
-	struct uintr_upid upid;
+	struct uintr_upid* upid;
 	/* TODO: Change to kernel kref api */
 	uint64_t refs;
 	bool_t receiver_active;		/* Flag for UPID being mapped to a receiver */
@@ -56,7 +56,7 @@ struct uintr_uitt_entry {
 
 /* TODO: Remove uitt from struct names */
 struct uintr_uitt_ctx {
-	struct uintr_uitt_entry uitt[256];
+	struct uintr_uitt_entry* uitt;
 	/* Protect UITT */
 	// struct mutex uitt_lock;
 	/* TODO: Change to kernel kref api */

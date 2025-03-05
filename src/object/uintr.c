@@ -46,10 +46,11 @@ exception_t handle_SysUintrRegisterHandler(void)
 {
     uint64_t handler = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
-    uint64_t addr1 = getSyscallArg(2, NULL);//paddr
+    uint64_t addr1 = (uint64_t)getSyscallArg(2, NULL) + (uint64_t)PPTR_BASE_OFFSET;//paddr
     uint64_t addr2 = getSyscallArg(3, NULL);//vaddr
 
     printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
+    printf("addr1 : %lx, addr2 : %lx\n",(unsigned long)addr1, (unsigned long)addr2);
 
     if (flags & ~UINTR_HANDLER_FLAG_WAITING_ANY)
         return EXCEPTION_SYSCALL_ERROR;
@@ -172,12 +173,14 @@ exception_t handle_SysUintrRegisterSender(void)
 {
     int32_t uvec_fd = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
-    uint64_t addr1 = getSyscallArg(2, NULL);//upid paddr
-    uint64_t addr2 = getSyscallArg(3, NULL);//upid vaddr
-    uint64_t addr3 = getRegister(NODE_STATE(ksCurThread), R12);//uitt paddr
-    uint64_t addr4 = getRegister(NODE_STATE(ksCurThread), R13);//uitt vaddr
+    //uint64_t addr1 = getSyscallArg(2, NULL);//upid paddr
+    uint64_t addr2 = getSyscallArg(2, NULL);//upid vaddr
+    uint64_t addr3 = (uint64_t)getSyscallArg(3, NULL) + (uint64_t)PPTR_BASE_OFFSET;//uitt paddr
+    uint64_t addr4 = getRegister(NODE_STATE(ksCurThread), R12);//uitt vaddr
 
     printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
+
+    printf("addr2 : %lx, addr3 : %lx, addr4: %lx\n",(unsigned long)addr2, (unsigned long)addr3, (unsigned long)addr4);
 
     if (flags)
         return EXCEPTION_SYSCALL_ERROR;

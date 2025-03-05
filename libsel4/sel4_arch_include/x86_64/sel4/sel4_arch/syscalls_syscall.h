@@ -201,10 +201,12 @@ static inline void x64_sys_null(seL4_Word sys)
 }
 
 #ifdef CONFIG_X86_64_UINTR
-LIBSEL4_INLINE_FUNC void x64_uintr_syscall1(seL4_Word sys, seL4_Uint64 arg1, seL4_Uint32 flags)
+LIBSEL4_INLINE_FUNC void x64_uintr_syscall1(seL4_Word sys, seL4_Uint64 arg1, seL4_Uint32 flags, seL4_Uint64 addr1, seL4_Uint64 addr2)
 {
     register seL4_Uint64 mr0 asm("r10") = arg1;
     register seL4_Uint32 mr1 asm("r8") = flags;
+    register seL4_Word mr2 asm("r9") = addr1;
+    register seL4_Word mr3 asm("r15") = addr2;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
@@ -212,7 +214,9 @@ LIBSEL4_INLINE_FUNC void x64_uintr_syscall1(seL4_Word sys, seL4_Uint64 arg1, seL
         :
         : "d"(sys),
         "r"(mr0),
-        "r"(mr1)
+        "r"(mr1),
+        "r"(mr2),
+        "r"(mr3)
         : "%rcx", "%rbx", "%r11"
     );
 }
@@ -263,10 +267,14 @@ LIBSEL4_INLINE_FUNC void x64_uintr_syscall4(seL4_Word sys, seL4_Uint64 arg1, seL
     );
 }
 
-LIBSEL4_INLINE_FUNC void x64_uintr_syscall5(seL4_Word sys, seL4_Int32 arg1, seL4_Uint32 flags, seL4_Int64 *id)
+LIBSEL4_INLINE_FUNC void x64_uintr_syscall5(seL4_Word sys, seL4_Int32 arg1, seL4_Uint32 flags, seL4_Int64 *id, seL4_Uint64 addr1, seL4_Uint64 addr2, seL4_Uint64 addr3, seL4_Uint64 addr4)
 {
     register seL4_Int32 mr0 asm("r10") = arg1;
     register seL4_Uint32 mr1 asm("r8") = flags;
+    register seL4_Word mr2 asm("r9") = addr1;
+    register seL4_Word mr3 asm("r15") = addr2;
+    register seL4_Word reply_reg asm("r12") = addr3;
+    register seL4_Word dest_reg asm("r13") = addr4;
     asm volatile(
         "movq   %%rsp, %%rbx        \n"
         "syscall                    \n"
@@ -274,7 +282,11 @@ LIBSEL4_INLINE_FUNC void x64_uintr_syscall5(seL4_Word sys, seL4_Int32 arg1, seL4
         : "=D"(*id)
         : "d"(sys),
         "r"(mr0),
-        "r"(mr1)
+        "r"(mr1),
+        "r"(mr2),
+        "r"(mr3),
+        "r"(reply_reg),
+        "r"(dest_reg)
         : "%rcx", "%rbx", "%r11", "memory"
     );
 }

@@ -46,6 +46,8 @@ exception_t handle_SysUintrRegisterHandler(void)
 {
     uint64_t handler = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
+    uint64_t addr1 = getSyscallArg(2, NULL);//paddr
+    uint64_t addr2 = getSyscallArg(3, NULL);//vaddr
 
     printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
 
@@ -60,7 +62,7 @@ exception_t handle_SysUintrRegisterHandler(void)
         return EXCEPTION_SYSCALL_ERROR;
     
     if (!cur->upid_is_alloced) {
-		alloc_upid(cur);
+		alloc_upid(cur, addr1);
         cur->upid_is_alloced = 1;
 	}
 
@@ -68,7 +70,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     // fpregs_lock();
     struct uintr_upid_ctx *upid_ctx = &cur->upid_ctx;
     upid_ctx->refs += 1;
-    struct uintr_upid *upid = &upid_ctx->upid;
+    struct uintr_upid *upid = upid_ctx->upid;
     upid->nc.nv = UINTR_NOTIFICATION_VECTOR;
 
 #ifdef ENABLE_SMP_SUPPORT
@@ -87,7 +89,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
 
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
-    x86_wrmsr(MSR_IA32_UINTR_PD, TransAddr(upid));
+    x86_wrmsr(MSR_IA32_UINTR_PD, addr2);
     x86_wrmsr(MSR_IA32_UINTR_STACKADJUST, 128);
     uint64_t misc_msr = x86_rdmsr(MSR_IA32_UINTR_MISC);
     misc_msr |= (uint64_t)UINTR_NOTIFICATION_VECTOR << 32;
@@ -127,7 +129,7 @@ exception_t handle_SysUintrUnRegisterHandler(void)
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, 0);
 
 	cur->upid_activated = false;
-	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid.nc.status);
+	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid->nc.status);
 
     // sub and release
     //put_upid_ref(upid_ctx);
@@ -152,19 +154,11 @@ exception_t handle_SysUintrVectorFd(void)
     return do_uintr_register_vector(vector);
 }
 
-static void uintr_set_sender_msrs(tcb_t *t)
+static void uintr_set_sender_msrs(tcb_t *t, uint64_t addr)
 {
-    printf("will set_sender,size:%lx\n", sizeof(struct uintr_uitt_entry));
-	struct uintr_uitt_ctx *uitt_ctx = &t->uitt_ctx;
-    struct uintr_uitt_entry *uitt = &uitt_ctx->uitt[0];
+    printf("uitt 0 addr: %lx\n", (unsigned long)addr);
 
-    printf("offset: %lx\n", (unsigned long)PPTR_BASE_OFFSET);
-
-    printf("uitt 0 addr: %lx\n", (unsigned long)uitt);
-    printf("uitt 0 anoaddr 1: %lx\n", (unsigned long)addrFromPPtr(uitt));
-    //printf("uitt 0 anoaddr 2: %lx\n", (unsigned long)addrFromKPPtr(uitt));
-
-    x86_wrmsr(MSR_IA32_UINTR_TT, TransAddr(uitt) | 1);
+    x86_wrmsr(MSR_IA32_UINTR_TT, addr | 1);
 	/* Modify only the relevant bits of the MISC MSR */
 	uint64_t msr64 = x86_rdmsr(MSR_IA32_UINTR_MISC);
 	msr64 &= UINTR_MASK_2;
@@ -178,6 +172,10 @@ exception_t handle_SysUintrRegisterSender(void)
 {
     int32_t uvec_fd = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
+    uint64_t addr1 = getSyscallArg(2, NULL);//upid paddr
+    uint64_t addr2 = getSyscallArg(3, NULL);//upid vaddr
+    uint64_t addr3 = getRegister(NODE_STATE(ksCurThread), R12);//uitt paddr
+    uint64_t addr4 = getRegister(NODE_STATE(ksCurThread), R13);//uitt vaddr
 
     printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
 
@@ -196,7 +194,7 @@ exception_t handle_SysUintrRegisterSender(void)
     }
 
     if (!cur->uitt_is_alloced) {
-		alloc_uitt(cur);
+		alloc_uitt(cur, addr3);
         cur->uitt_is_alloced = 1;
 	}
 
@@ -214,8 +212,7 @@ exception_t handle_SysUintrRegisterSender(void)
 
 	/* Program the UITT entry */
 	uitte->user_vec = uvec;
-    struct uintr_upid *upid = &upid_ctx->upid;
-	uitte->target_upid_addr = TransAddr(upid);
+	uitte->target_upid_addr = addr2;
 	uitte->valid = 1;
 
     printf("regsend, target_upid_add: %lx ,entry: %lu\n", (unsigned long)uitte->target_upid_addr, (unsigned long)entry);
@@ -226,7 +223,7 @@ exception_t handle_SysUintrRegisterSender(void)
 	//mutex_unlock(&uitt_ctx->uitt_lock);
 
     if (!is_uintr_sender(cur))
-		uintr_set_sender_msrs(cur);
+		uintr_set_sender_msrs(cur, addr4);
 
     setRegister(cur, badgeRegister, entry);
 

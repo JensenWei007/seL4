@@ -27,6 +27,7 @@ static exception_t do_uintr_register_vector(uint64_t uvec)
 		return EXCEPTION_SYSCALL_ERROR;
 
 	upid_ctx = &cur->upid_ctx;
+    cur->uvec = uvec;
 
 	/* Vectors once registered always stay registered */
 	if (!(upid_ctx->uvec_mask & BIT_ULL(uvec)))
@@ -35,7 +36,7 @@ static exception_t do_uintr_register_vector(uint64_t uvec)
 	/* uvecfd_upid_ctx should be passed only when an FD is being created */
 	upid_ctx->refs += 1;
 
-    printf("call vectorfd, ret: %lu \n", (unsigned long)cur->id);
+    //printf("call vectorfd, ret: %lu \n", (unsigned long)cur->id);
     setRegister(cur, badgeRegister, cur->id);
 
 	return EXCEPTION_NONE;
@@ -46,11 +47,11 @@ exception_t handle_SysUintrRegisterHandler(void)
 {
     uint64_t handler = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
-    uint64_t addr1 = (uint64_t)getSyscallArg(2, NULL) + (uint64_t)PPTR_BASE_OFFSET;//paddr
-    uint64_t addr2 = getSyscallArg(3, NULL);//vaddr
+    uint64_t addr1 = (uint64_t)getSyscallArg(2, NULL) + (uint64_t)PPTR_BASE_OFFSET;
+    uint64_t addr2 = getSyscallArg(3, NULL);
 
-    printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
-    printf("addr1 : %lx, addr2 : %lx\n",(unsigned long)addr1, (unsigned long)addr2);
+    //printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
+    //printf("addr1 : %lx, addr2 : %lx\n",(unsigned long)addr1, (unsigned long)addr2);
 
     if (flags & ~UINTR_HANDLER_FLAG_WAITING_ANY)
         return EXCEPTION_SYSCALL_ERROR;
@@ -87,7 +88,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     upid->nc.ndst = 0;
 #endif
 #endif
-    printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
+    //printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
 
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
     x86_wrmsr(MSR_IA32_UINTR_PD, addr2);
@@ -101,12 +102,20 @@ exception_t handle_SysUintrRegisterHandler(void)
     // Here we enable preemption
 	// fpregs_unlock();
 
+    /* 不知道是干啥的
+    if (flags & UINTR_HANDLER_FLAG_WAITING_ANY) {
+		if (flags & UINTR_HANDLER_FLAG_WAITING_RECEIVER)
+			upid_ctx->waiting_cost = UPID_WAITING_COST_RECEIVER;
+		else
+			upid_ctx->waiting_cost = UPID_WAITING_COST_SENDER;
+	}
+    */
+
     return EXCEPTION_NONE;
 }
 
 exception_t handle_SysUintrUnRegisterHandler(void)
 {
-    printf("call unregister handler\n");
     uint32_t flags = getSyscallArg(0, NULL);
 
     if (flags)
@@ -115,7 +124,7 @@ exception_t handle_SysUintrUnRegisterHandler(void)
     tcb_t* cur = NODE_STATE(ksCurThread);
     struct uintr_upid_ctx *upid_ctx = &cur->upid_ctx;
 
-    if (is_uintr_receiver(cur))
+    if (!is_uintr_receiver(cur))
         return EXCEPTION_SYSCALL_ERROR;
 
     // Here need to disable preemption
@@ -133,7 +142,7 @@ exception_t handle_SysUintrUnRegisterHandler(void)
 	set_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid_ctx->upid->nc.status);
 
     // sub and release
-    //put_upid_ref(upid_ctx);
+    put_upid_ref(cur, upid_ctx);
 
     // Need to add
 	//uintr_remove_task_wait(t);
@@ -157,13 +166,11 @@ exception_t handle_SysUintrVectorFd(void)
 
 static void uintr_set_sender_msrs(tcb_t *t, uint64_t addr)
 {
-    printf("uitt 0 addr: %lx\n", (unsigned long)addr);
-
     x86_wrmsr(MSR_IA32_UINTR_TT, addr | 1);
 	/* Modify only the relevant bits of the MISC MSR */
 	uint64_t msr64 = x86_rdmsr(MSR_IA32_UINTR_MISC);
 	msr64 &= UINTR_MASK_2;
-	msr64 |= 256;
+	msr64 |= 255;
 	x86_wrmsr(MSR_IA32_UINTR_MISC, msr64);
 
 	t->uitt_activated = true;
@@ -173,14 +180,13 @@ exception_t handle_SysUintrRegisterSender(void)
 {
     int32_t uvec_fd = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
-    //uint64_t addr1 = getSyscallArg(2, NULL);//upid paddr
-    uint64_t addr2 = getSyscallArg(2, NULL);//upid vaddr
-    uint64_t addr3 = (uint64_t)getSyscallArg(3, NULL) + (uint64_t)PPTR_BASE_OFFSET;//uitt paddr
-    uint64_t addr4 = getRegister(NODE_STATE(ksCurThread), R12);//uitt vaddr
+    uint64_t addr2 = getSyscallArg(2, NULL);
+    uint64_t addr3 = (uint64_t)getSyscallArg(3, NULL) + (uint64_t)PPTR_BASE_OFFSET;
+    uint64_t addr4 = getRegister(NODE_STATE(ksCurThread), R12);
 
-    printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
+    //printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
 
-    printf("addr2 : %lx, addr3 : %lx, addr4: %lx\n",(unsigned long)addr2, (unsigned long)addr3, (unsigned long)addr4);
+    //printf("addr2 : %lx, addr3 : %lx, addr4: %lx\n",(unsigned long)addr2, (unsigned long)addr3, (unsigned long)addr4);
 
     if (flags)
         return EXCEPTION_SYSCALL_ERROR;
@@ -191,13 +197,11 @@ exception_t handle_SysUintrRegisterSender(void)
     struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;
 
     if (!upid_ctx->receiver_active)
-    {
-        printf("task is not receiver\n");
 		return EXCEPTION_SYSCALL_ERROR;
-    }
 
     if (!cur->uitt_is_alloced) {
 		alloc_uitt(cur, addr3);
+        // This will set 0 when thread is destroyed, we just free uitt_entry when unregisterSender.
         cur->uitt_is_alloced = 1;
 	}
 
@@ -218,7 +222,7 @@ exception_t handle_SysUintrRegisterSender(void)
 	uitte->target_upid_addr = addr2;
 	uitte->valid = 1;
 
-    printf("regsend, target_upid_add: %lx ,entry: %lu\n", (unsigned long)uitte->target_upid_addr, (unsigned long)entry);
+    //printf("regsend, target_upid_add: %lx ,entry: %lu\n", (unsigned long)uitte->target_upid_addr, (unsigned long)entry);
 
     upid_ctx->refs += 1;
 	uitt_ctx->r_upid_ctx[entry] = upid_ctx;

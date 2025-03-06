@@ -65,17 +65,9 @@ sel4的测试用例见含有UINTR用例的sel4test: projects/sel4test/apps/sel4t
 此处需要做说明，对发送方需要做两次页表映射，分别称为paddr1 & vaddr1与paddr2 & vaddr2。其中 paddr1 需与接收方的 paddr 相同（可通过复制页帧能力进行重新映射），vaddr1 无需相同。paddr2 与 vaddr2 为发送方所特有的页帧，无要求。
 
 返回值：
-- seL4_Int64 fd, 返回的fd值。
-
-需要说明的是，sel4中不含有文件系统相关的定义和实现，系统调用中的fd为宏内核迁移到sel4的残留命名方式，其不支持文件系统对fd的操作。
-此处返回的fd仅仅是一个token，不含有任何能力。
+- seL4_Int64 index, 返回的index值，用于发送用户态中断：'SENDUIPI  <uipi_index>'。一个程序最多接受256个发送程序对其注册，index值即代表在此256个值中为第几个。
 
 ## unregister_sender
 
 输入参数：
 - seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
-
-
-
-
-

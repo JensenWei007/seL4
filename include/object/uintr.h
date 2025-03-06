@@ -31,7 +31,7 @@ typedef struct tcb tcb_t;
 #define MSR_IA32_UINTR_RR		0x985
 #define MSR_IA32_UINTR_HANDLER		0x986
 #define MSR_IA32_UINTR_STACKADJUST	0x987
-#define MSR_IA32_UINTR_MISC		0x988	/* 39:32-UINV, 31:0-UITTSZ */
+#define MSR_IA32_UINTR_MISC		0x988
 #define MSR_IA32_UINTR_PD		0x989
 #define MSR_IA32_UINTR_TT		0x98a
 #define UINTR_NOTIFICATION_VECTOR       0xec
@@ -71,6 +71,15 @@ static void alloc_upid(tcb_t *t, uint64_t addr)
 	upid_ctx->task = NODE_STATE(ksCurThread);;
 	upid_ctx->receiver_active = true;
 	upid_ctx->waiting = false;
+}
+
+static void put_upid_ref(tcb_t *t, struct uintr_upid_ctx *upid_ctx)
+{
+	upid_ctx->refs -= 2;
+	if (upid_ctx->refs == 0) {
+		upid_ctx->upid = NULL;
+		t->upid_is_alloced = 0;
+	}
 }
 
 static inline void set_bit(int32_t nr, void *addr)

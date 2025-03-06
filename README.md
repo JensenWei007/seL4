@@ -1,115 +1,81 @@
-<!--
-     Copyright 2014, General Dynamics C4 Systems
-
-     SPDX-License-Identifier: GPL-2.0-only
--->
-
-The seL4 microkernel
+The seL4 microkernel for x86_UINTR
 ====================
 
-[![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/5003/badge)](https://bestpractices.coreinfrastructure.org/projects/5003)
-[![CI](https://github.com/seL4/seL4/actions/workflows/push.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/push.yml)
-[![seL4Test](https://github.com/seL4/seL4/actions/workflows/sel4test-deploy.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/sel4test-deploy.yml)
-[![C Parser](https://github.com/seL4/seL4/actions/workflows/cparser.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/cparser.yml)
-[![Compile](https://github.com/seL4/seL4/actions/workflows/compilation-checks.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/compilation-checks.yml)
-[![Proof Sync](https://github.com/seL4/seL4/actions/workflows/preprocess-deploy.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/preprocess-deploy.yml)
-[![RefMan](https://github.com/seL4/seL4/actions/workflows/manual.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/manual.yml)
-[![XML](https://github.com/seL4/seL4/actions/workflows/xml_lint.yml/badge.svg)](https://github.com/seL4/seL4/actions/workflows/xml_lint.yml)
+## 新增系统调用
 
-This project contains the source code of seL4 microkernel.
+针对x86架构的用户态中断，增加下列系统调用：
 
-For details about the seL4 microkernel, including details about its formal
-correctness proof, please see the [`sel4.systems`][1] website and associated
-[FAQ][2].
+- seL4_uintr_register_handler()。注册为用户态中断处理函数的接收方。
+- seL4_uintr_unregister_handler()。销毁用户态中断处理函数。
+- seL4_uintr_vector_fd()。创建一个用户态中断的文件描述符。
+- seL4_uintr_register_sender()。注册为进程间用户态中断的发送方。
+- seL4_uintr_unregister_sender()。销毁发送方。
+- seL4_uintr_wait()。暂无实现。
+- seL4_uintr_register_self()。暂无实现。
+- seL4_uintr_alt_stack()。暂无实现。
+- seL4_uintr_ipi_fd()。暂无实现。
 
-DOIs for citing recent releases of this repository:
+## 由sel4的特性引起的使用注意事项
 
-- [![DOI][4]](https://doi.org/10.5281/zenodo.591727)
+因为sel4不提供使用页表的虚拟内存管理，其在内核中是使用pptr进行操作（pptr = paddr + OFFSET），pptr本质上是仅加了一个偏移量后映射到最高位的物理地址，因此本质上在内核中的所有地址操作都是对真实物理地址进行操作。
 
-We welcome contributions to seL4. Please see the website for information
-on [how to contribute][3].
+但用户程序会要求使用经过页表映射而非简单的偏移映射的虚拟地址，这在sel4的内核中是无法实现的，但是用户态中断的处理流程中需要CPU读取内存中的相应数据结构的信息，向对应地址写入标志位以触发用户态的中断（因为用户态中断本身要求不经过委托给内核处理，因此需要CPU自行处理相关内存的读写，同时需要在CPL = 3的要求也使得必须使用页表映射的虚拟地址）。
 
-This repository is usually not used in isolation, but as part of the build
-system in a larger project.
+因此与linux不需要关心地址不同，sel4要求用户程序自行创建页帧和页表映射关系，并在发起系统调用时将对应的页的物理地址传入内核，由内核代为处理此页。同时为了CPU能够在用户态下访问，此页帧的虚拟地址也需要传入给内核。
 
-  [1]: http://sel4.systems/
-  [2]: https://docs.sel4.systems/projects/sel4/frequently-asked-questions
-  [3]: https://docs.sel4.systems/processes/contributing.html
-  [4]: https://zenodo.org/badge/DOI/10.5281/zenodo.591727.svg
-  [5]: https://sel4.systems/Info/Docs/seL4-manual-latest.pdf
-  [6]: https://docs.sel4.systems/Resources#setting-up-your-machine
-  [7]: https://docs.sel4.systems/releases/sel4
-  [8]: https://docs.sel4.systems/projects/sel4/api-doc.html
+值得一提的是，如果sel4即将运行在一个不使用页表寻址，而是默认所有地址为物理地址的CPU上，那么只需要让传入的虚拟地址等于物理地址即可。
 
-seL4 Basics
----------------
+## 详细说明与示例
 
-- [Tutorials](https://docs.sel4.systems/Tutorials)
-- [Documentation](https://docs.sel4.systems/projects/sel4/documentation)
-- [seL4 libraries](https://docs.sel4.systems/projects/user_libs)
-- [seL4Test](https://docs.sel4.systems/projects/sel4test/)
-- [Debugging guide](https://docs.sel4.systems/projects/sel4-tutorials/debugging-guide)
-- [Benchmarking guide](https://docs.sel4.systems/projects/sel4-tutorials/benchmarking-guide.html)
-- [Virtualization on seL4](https://docs.sel4.systems/projects/virtualization/)
-- [Host Build Dependencies](https://docs.sel4.systems/projects/buildsystem/host-dependencies.html)
-- [Porting seL4](https://docs.sel4.systems/projects/sel4/porting)
+详细请见Intel手册与Intel的linux示例内核：https://github.com/intel/uintr-linux-kernel
 
-Community
----------
+sel4的测试用例见含有UINTR用例的sel4test: projects/sel4test/apps/sel4test-tests/src/tests/uintr.c
 
-- Forums:
-  - [Discourse](https://sel4.discourse.group/)
-  - [seL4 Announce](https://lists.sel4.systems/postorius/lists/announce.sel4.systems)
-  - [seL4 Devel](https://lists.sel4.systems/postorius/lists/devel.sel4.systems)
-- [Suggested projects](https://docs.sel4.systems/SuggestedProjects)
-- [Community projects](https://docs.sel4.systems/CommunityProjects)
+## seL4_uintr_register_handler
 
-See the [contact] links on the seL4 website for the full list.
+输入参数：
+- seL4_Uint64 handler_address, 处理函数的地址。
+- seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
+- seL4_Uint64* addr, 长度应为2的数组，保存：0:paddr, 1:vaddr
 
-[contact]: https://sel4.systems/contact
+## seL4_uintr_unregister_handler
 
-Reporting security vulnerabilities
-----------------------------------
+输入参数：
+- seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
 
-If you believe you have found a security vulnerability in seL4 or related
-software, we ask you to follow our [vulnerability disclosure policy][VDP].
+## seL4_uintr_vector_fd
 
-[VDP]: https://github.com/seL4/seL4/blob/master/SECURITY.md
+输入参数：
+- seL4_Uint64 vector, 需要在接受方处理向量中，为哪一个索引创建fd（fd需大于等于0，小于64）。
+- seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
 
-Manual
-------
+返回值：
+- seL4_Int64 fd, 返回的fd值。
 
-A hosted version of the [manual](manual/) for the most recent release can be found [here][5].
+需要说明的是，sel4中不含有文件系统相关的定义和实现，系统调用中的fd为宏内核迁移到sel4的残留命名方式，其不支持文件系统对fd的操作。
+此处返回的fd仅仅是一个token，不含有任何能力。
 
-A web version of the API can be found [here][8]
+## seL4_uintr_register_sender
 
-Repository Overview
--------------------
+输入参数：
+- seL4_Int32 uvec_fd, 需要传入的fd token，以此 fd 来定位和区分发送后哪一个进程会收到用户态中断。
+- seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
+- seL4_Uint64* addr, 长度应为3的数组，保存：0:vaddr1, 1:paddr2, 2:vaddr2
 
-- `include` and `src`: C and ASM source code of seL4
-- `tools`: build tools
-- `libsel4`: C bindings for the seL4 ABI
-- `manual`: LaTeX sources of the seL4 reference manual
+此处需要做说明，对发送方需要做两次页表映射，分别称为paddr1 & vaddr1与paddr2 & vaddr2。其中 paddr1 需与接收方的 paddr 相同（可通过复制页帧能力进行重新映射），vaddr1 无需相同。paddr2 与 vaddr2 为发送方所特有的页帧，无要求。
 
-Build Instructions
-------------------
+返回值：
+- seL4_Int64 fd, 返回的fd值。
 
-See the seL4 website for [build instructions][6].
+需要说明的是，sel4中不含有文件系统相关的定义和实现，系统调用中的fd为宏内核迁移到sel4的残留命名方式，其不支持文件系统对fd的操作。
+此处返回的fd仅仅是一个token，不含有任何能力。
 
-Status
-------
+## unregister_sender
 
-A list of releases and current project status can be found under [seL4 releases][7].
+输入参数：
+- seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
 
-- [Roadmap](https://docs.sel4.systems/projects/roadmap): new features in development
-- [Hardware Support](https://docs.sel4.systems/Hardware): information about hardware platform ports
-- [Kernel Features](https://docs.sel4.systems/projects/sel4/status): information about available
-  kernel features
-- [Userland Components and
-      Drivers](https://docs.sel4.systems/projects/available-user-components.html): available device
-      drivers and userland components
 
-License
--------
 
-See the file [LICENSE.md](./LICENSE.md).
+
+

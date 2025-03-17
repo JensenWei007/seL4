@@ -50,8 +50,8 @@ exception_t handle_SysUintrRegisterHandler(void)
     uint64_t addr1 = (uint64_t)getSyscallArg(2, NULL) + (uint64_t)PPTR_BASE_OFFSET;
     uint64_t addr2 = getSyscallArg(3, NULL);
 
-    //printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
-    //printf("addr1 : %lx, addr2 : %lx\n",(unsigned long)addr1, (unsigned long)addr2);
+    printf("recv, handler: %lx, flag: %u \n",(unsigned long)handler, flags);
+    printf("addr1 : %lx, addr2 : %lx\n",(unsigned long)addr1, (unsigned long)addr2);
 
     if (flags & ~UINTR_HANDLER_FLAG_WAITING_ANY)
         return EXCEPTION_SYSCALL_ERROR;
@@ -88,7 +88,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     upid->nc.ndst = 0;
 #endif
 #endif
-    //printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
+    printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
 
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
     x86_wrmsr(MSR_IA32_UINTR_PD, addr2);
@@ -184,9 +184,9 @@ exception_t handle_SysUintrRegisterSender(void)
     uint64_t addr3 = (uint64_t)getSyscallArg(3, NULL) + (uint64_t)PPTR_BASE_OFFSET;
     uint64_t addr4 = getRegister(NODE_STATE(ksCurThread), R12);
 
-    //printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
+    printf("call register sender, fd: %u, flags: %u \n", uvec_fd, flags);
 
-    //printf("addr2 : %lx, addr3 : %lx, addr4: %lx\n",(unsigned long)addr2, (unsigned long)addr3, (unsigned long)addr4);
+    printf("addr2 : %lx, addr3 : %lx, addr4: %lx\n",(unsigned long)addr2, (unsigned long)addr3, (unsigned long)addr4);
 
     if (flags)
         return EXCEPTION_SYSCALL_ERROR;
@@ -222,7 +222,7 @@ exception_t handle_SysUintrRegisterSender(void)
 	uitte->target_upid_addr = addr2;
 	uitte->valid = 1;
 
-    //printf("regsend, target_upid_add: %lx ,entry: %lu\n", (unsigned long)uitte->target_upid_addr, (unsigned long)entry);
+    printf("regsend, target_upid_add: %lx ,entry: %lu\n", (unsigned long)uitte->target_upid_addr, (unsigned long)entry);
 
     upid_ctx->refs += 1;
 	uitt_ctx->r_upid_ctx[entry] = upid_ctx;

@@ -178,10 +178,12 @@ void static switch_uintr_return(void)
 #else
 	upid->nc.ndst = 0;
 #endif
-#endif	
+#endif
 	clear_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid->nc.status);
 
 	if (upid->puir)
+	{
 		printf("puir is true ,should send ipi\n");
-		//apic->send_IPI_self(UINTR_NOTIFICATION_VECTOR);
+		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, getCurrentLOGID());
+	}
 }

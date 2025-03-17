@@ -114,6 +114,7 @@ tcb_queue_t tcb_queue_remove(tcb_queue_t queue, tcb_t *tcb)
 /* Add TCB to the head of a scheduler queue */
 void tcbSchedEnqueue(tcb_t *tcb)
 {
+    printf("t2, id: %i\n", (int)tcb->id);
 #ifdef CONFIG_KERNEL_MCS
     assert(isSchedulable(tcb));
     assert(refill_sufficient(tcb->tcbSchedContext, 0));
@@ -143,6 +144,7 @@ void tcbSchedEnqueue(tcb_t *tcb)
 /* Add TCB to the end of a scheduler queue */
 void tcbSchedAppend(tcb_t *tcb)
 {
+    printf("t1, id: %i\n", (int)tcb->id);
 #ifdef CONFIG_KERNEL_MCS
     assert(isSchedulable(tcb));
     assert(refill_sufficient(tcb->tcbSchedContext, 0));
@@ -271,6 +273,7 @@ tcb_queue_t tcbEPDequeue(tcb_t *tcb, tcb_queue_t queue)
 
 tcb_t* getTcbById(int64_t id)
 {
+    printf("NODES: %lu, QUEUES: %lu\n", (unsigned long)CONFIG_MAX_NUM_NODES, (unsigned long)NUM_READY_QUEUES);
     for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
     {
         tcb_t* ret = NODE_STATE_ON_CORE(ksCurThread, cpuIndexToID(i));
@@ -294,6 +297,7 @@ tcb_t* getTcbById(int64_t id)
                 before = after->tcbSchedPrev;
             }
         }
+    printf("will return cur\n");
     return NODE_STATE(ksCurThread);
 }
 

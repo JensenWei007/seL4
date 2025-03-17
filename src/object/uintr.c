@@ -88,7 +88,7 @@ exception_t handle_SysUintrRegisterHandler(void)
     upid->nc.ndst = 0;
 #endif
 #endif
-    printf("register hanl, upid: %lx, task id: %i \n",(unsigned long)upid, (int)cur->id);
+    printf("register hanl, upid: %lx, task id: %i, upid_ctx addr: %lx\n",(unsigned long)upid, (int)cur->id, (unsigned long)upid_ctx);
 
     x86_wrmsr(MSR_IA32_UINTR_HANDLER, handler);
     x86_wrmsr(MSR_IA32_UINTR_PD, addr2);
@@ -189,15 +189,22 @@ exception_t handle_SysUintrRegisterSender(void)
     printf("addr2 : %lx, addr3 : %lx, addr4: %lx\n",(unsigned long)addr2, (unsigned long)addr3, (unsigned long)addr4);
 
     if (flags)
+    {
+        printf("handle_SysUintrRegisterSender flag is not 0!\n");
         return EXCEPTION_SYSCALL_ERROR;
+    }
 
     tcb_t *t = getTcbById(uvec_fd);
+    printf("Find task id: %i\n", (int)t->id);
     tcb_t* cur = NODE_STATE(ksCurThread);
     uint64_t uvec = t->uvec;
     struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;
 
     if (!upid_ctx->receiver_active)
-		return EXCEPTION_SYSCALL_ERROR;
+    {
+        printf("handle_SysUintrRegisterSender upid_ctx is not receiver_active, upid_ctx add : %lx!\n", (unsigned long)upid_ctx);
+        return EXCEPTION_SYSCALL_ERROR;
+    }
 
     if (!cur->uitt_is_alloced) {
 		alloc_uitt(cur, addr3);

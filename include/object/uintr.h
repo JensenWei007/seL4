@@ -166,25 +166,25 @@ void static switch_uintr_return(void)
 	}
 
 	upid = cur->upid_ctx.upid;
+	uint32_t cur_cpu = 0;
 #ifdef ENABLE_SMP_SUPPORT
 #ifdef CONFIG_USE_LOGICAL_IDS
-	upid->nc.ndst = (uint32_t)getCurrentLOGID();
+	cur_cpu = (uint32_t)getCurrentLOGID();
 #else
-	upid->nc.ndst = (uint32_t)getCurrentCPUID();
+	cur_cpu = (uint32_t)getCurrentCPUID();
 #endif
 #else
 #ifdef CONFIG_USE_LOGICAL_IDS
-	upid->nc.ndst = (uint32_t)apic_get_logical_id();
-#else
-	upid->nc.ndst = 0;
+	cur_cpu = (uint32_t)apic_get_logical_id();
 #endif
 #endif
+	upid->nc.ndst = cur_cpu;
 	clear_bit(UINTR_UPID_STATUS_SN, (uint64_t *)&upid->nc.status);
 
 	if (upid->puir)
 	{
 		printf("puir is true ,should send ipi\n");
-		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, getCurrentLOGID());
+		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, cur_cpu);
 		printf("puir is true ,send ipi end\n");
 	}
 }

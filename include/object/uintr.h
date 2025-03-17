@@ -76,7 +76,7 @@ static void alloc_upid(tcb_t *t, uint64_t addr)
 static void put_upid_ref(tcb_t *t, struct uintr_upid_ctx *upid_ctx)
 {
 	upid_ctx->refs -= 2;
-	if (upid_ctx->refs == 0) {
+	if (upid_ctx->refs <= 0) {
 		upid_ctx->upid = NULL;
 		t->upid_is_alloced = 0;
 	}
@@ -185,5 +185,33 @@ void static switch_uintr_return(void)
 	{
 		printf("puir is true ,should send ipi\n");
 		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, getCurrentLOGID());
+		printf("puir is true ,send ipi end\n");
+	}
+}
+
+void static uintr_free(tcb_t *t)
+{
+	struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;
+	if (is_uintr_receiver(t) || is_uintr_sender(t)) {
+		x86_wrmsr(MSR_IA32_UINTR_MISC, 0);
+		x86_wrmsr(MSR_IA32_UINTR_TT, 0);
+		x86_wrmsr(MSR_IA32_UINTR_PD, 0);
+		x86_wrmsr(MSR_IA32_UINTR_RR, 0);
+		x86_wrmsr(MSR_IA32_UINTR_STACKADJUST, 0);
+		x86_wrmsr(MSR_IA32_UINTR_HANDLER, 0);
+
+		if (is_uintr_receiver(t)) {
+			set_bit(UINTR_UPID_STATUS_SN, (unsigned long *)&upid_ctx->upid->nc.status);
+			//uintr_remove_task_wait(t);
+			upid_ctx->receiver_active = false;
+			put_upid_ref(t, upid_ctx);
+		}
+
+		t->upid_activated = false;
+		t->uitt_activated = false;
+	}
+
+	if (t->upid_is_alloced) {
+		put_upid_ref(t, upid_ctx);
 	}
 }

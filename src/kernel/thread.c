@@ -83,6 +83,7 @@ void suspend(tcb_t *target)
     }
     setThreadState(target, ThreadState_Inactive);
     tcbSchedDequeue(target);
+    uintr_free(target);
 #ifdef CONFIG_KERNEL_MCS
     tcbReleaseRemove(target);
     schedContext_cancelYieldTo(target);

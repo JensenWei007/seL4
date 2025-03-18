@@ -114,7 +114,6 @@ tcb_queue_t tcb_queue_remove(tcb_queue_t queue, tcb_t *tcb)
 /* Add TCB to the head of a scheduler queue */
 void tcbSchedEnqueue(tcb_t *tcb)
 {
-    printf("t2, id: %i\n", (int)tcb->id);
 #ifdef CONFIG_KERNEL_MCS
     assert(isSchedulable(tcb));
     assert(refill_sufficient(tcb->tcbSchedContext, 0));
@@ -144,7 +143,6 @@ void tcbSchedEnqueue(tcb_t *tcb)
 /* Add TCB to the end of a scheduler queue */
 void tcbSchedAppend(tcb_t *tcb)
 {
-    printf("t1, id: %i\n", (int)tcb->id);
 #ifdef CONFIG_KERNEL_MCS
     assert(isSchedulable(tcb));
     assert(refill_sufficient(tcb->tcbSchedContext, 0));
@@ -271,6 +269,7 @@ tcb_queue_t tcbEPDequeue(tcb_t *tcb, tcb_queue_t queue)
     return queue;
 }
 
+#ifdef CONFIG_X86_64_UINTR
 tcb_t* getTcbById(int64_t id)
 {
     printf("NODES: %lu, QUEUES: %lu\n", (unsigned long)CONFIG_MAX_NUM_NODES, (unsigned long)NUM_READY_QUEUES);
@@ -300,6 +299,27 @@ tcb_t* getTcbById(int64_t id)
     printf("will return cur\n");
     return NODE_STATE(ksCurThread);
 }
+
+tcb_t* FindUintrTcbById(int64_t id)
+{
+    tcb_queue_t q = NODE_STATE(ksUintrQueues);
+    if (tcb_queue_empty(q))
+    {
+        printf("FindUintrTcbById error, queue is empty!\n");
+    }
+    tcb_t *before = q.end;
+    tcb_t *after = NULL;
+    while (unlikely(before != NULL)) {
+        printf("before id: %i \n",(int)before->id);
+        if (before->id == id)
+            return before;
+        after = before;
+        before = after->tcbSchedPrev;
+    }
+    printf("FindUintrTcbById error, should not reach here!\n");
+    return NODE_STATE(ksCurThread);
+}
+#endif
 
 #ifdef CONFIG_KERNEL_MCS
 

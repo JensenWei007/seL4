@@ -30,6 +30,10 @@ compile_assert(ksReadyQueuesL1BitmapBigEnough, (L2_BITMAP_SIZE - 1) <= wordBits)
 UP_STATE_DEFINE(tcb_queue_t, ksReleaseQueue);
 #endif
 
+#ifdef CONFIG_X86_64_UINTR
+UP_STATE_DEFINE(tcb_queue_t, ksUintrQueues);
+#endif
+
 /* Current thread TCB pointer */
 UP_STATE_DEFINE(tcb_t *, ksCurThread);
 

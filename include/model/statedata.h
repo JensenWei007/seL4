@@ -63,6 +63,10 @@ NODE_STATE_DECLARE(tcb_t, *ksCurThread);
 NODE_STATE_DECLARE(tcb_t, *ksIdleThread);
 NODE_STATE_DECLARE(tcb_t, *ksSchedulerAction);
 
+#ifdef CONFIG_X86_64_UINTR
+NODE_STATE_DECLARE(tcb_queue_t, ksUintrQueues);
+#endif
+
 #ifdef CONFIG_KERNEL_MCS
 NODE_STATE_DECLARE(tcb_queue_t, ksReleaseQueue);
 NODE_STATE_DECLARE(ticks_t, ksConsumed);

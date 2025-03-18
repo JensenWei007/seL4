@@ -36,7 +36,10 @@ static exception_t do_uintr_register_vector(uint64_t uvec)
 	/* uvecfd_upid_ctx should be passed only when an FD is being created */
 	upid_ctx->refs += 1;
 
-    //printf("call vectorfd, ret: %lu \n", (unsigned long)cur->id);
+    tcb_queue_t queue = NODE_STATE(ksUintrQueues);
+    NODE_STATE(ksUintrQueues) = tcb_queue_prepend(queue, cur);
+
+    printf("call vectorfd, ret: %lu \n", (unsigned long)cur->id);
     setRegister(cur, badgeRegister, cur->id);
 
 	return EXCEPTION_NONE;
@@ -144,6 +147,9 @@ exception_t handle_SysUintrUnRegisterHandler(void)
     // sub and release
     put_upid_ref(cur, upid_ctx);
 
+    tcb_queue_t queue = NODE_STATE(ksUintrQueues);
+    NODE_STATE(ksUintrQueues) = tcb_queue_remove(queue, cur);
+
     // Need to add
 	//uintr_remove_task_wait(t);
     
@@ -194,7 +200,7 @@ exception_t handle_SysUintrRegisterSender(void)
         return EXCEPTION_SYSCALL_ERROR;
     }
 
-    tcb_t *t = getTcbById(uvec_fd);
+    tcb_t *t = FindUintrTcbById(uvec_fd);
     printf("Find task id: %i\n", (int)t->id);
     tcb_t* cur = NODE_STATE(ksCurThread);
     uint64_t uvec = t->uvec;

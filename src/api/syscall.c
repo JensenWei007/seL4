@@ -411,7 +411,6 @@ static void handleRecv(bool_t isBlocking, bool_t canReply)
 static void handleRecv(bool_t isBlocking)
 #endif
 {
-    printf("will handle recv, id: %i\n", (int)NODE_STATE(ksCurThread)->id);
     word_t epCPtr;
     lookupCap_ret_t lu_ret;
 

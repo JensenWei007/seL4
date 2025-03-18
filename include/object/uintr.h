@@ -183,7 +183,7 @@ void static switch_uintr_return(void)
 
 	if (upid->puir)
 	{
-		printf("puir is true ,should send ipi\n");
+		printf("puir is true ,should send ipi to id: %i\n", (int)cur->id);
 		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, cur_cpu);
 		printf("puir is true ,send ipi end\n");
 	}

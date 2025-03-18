@@ -370,7 +370,6 @@ void schedule(void)
         }
 
         if (NODE_STATE(ksSchedulerAction) == SchedulerAction_ChooseNewThread) {
-            printf("cho111\n");
             scheduleChooseNewThread();
         } else {
             tcb_t *candidate = NODE_STATE(ksSchedulerAction);
@@ -438,7 +437,6 @@ void chooseThread(void)
         assert(refill_sufficient(thread->tcbSchedContext, 0));
         assert(refill_ready(thread->tcbSchedContext));
 #endif
-        printf("s22222\n");
         switchToThread(thread);
     } else {
         switchToIdleThread();
@@ -459,7 +457,7 @@ void switchToThread(tcb_t *thread)
 #endif
     Arch_switchToThread(thread);
     tcbSchedDequeue(thread);
-    printf("switch to ,from %i to %i\n",(int)NODE_STATE(ksCurThread)->id, (int)thread->id);
+    //printf("switch to ,from %i to %i\n",(int)NODE_STATE(ksCurThread)->id, (int)thread->id);
 #ifdef CONFIG_X86_64_UINTR
     switch_uintr_prepare();
 #endif

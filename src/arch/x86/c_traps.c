@@ -96,6 +96,7 @@ void VISIBLE NORETURN c_handle_interrupt(int irq, int syscall)
 #endif
         handleUnknownSyscall(sys_num);
     }
+    userError("===========rest 22\n");
     restore_user_context();
     UNREACHABLE();
 }
@@ -136,7 +137,7 @@ void NORETURN slowpath(syscall_t syscall)
 #endif /* TRACK KERNEL ENTRIES */
         handleSyscall(syscall);
     }
-
+    userError("===========rest 33\n");
     restore_user_context();
     UNREACHABLE();
 }

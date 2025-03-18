@@ -128,6 +128,7 @@ static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t m
          * a race condition in restoring the flags (which enables stepping and interrupts) and
          * calling sysexit. This case is handled in restore_user_context so we just go there
          */
+        userError("===========rest 11\n");
         restore_user_context();
     }
     NODE_UNLOCK;

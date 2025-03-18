@@ -527,6 +527,7 @@ void NORETURN fastpath_reply_recv(word_t cptr, word_t msgInfo)
         switchToThread_fp(caller, cap_pd, stored_hw_asid);
 
         /* The badge/msginfo do not need to be not sent - this is not necessary for exceptions */
+        userError("===========rest 33\n");
         restore_user_context();
     } else {
 #endif
@@ -605,6 +606,7 @@ void NORETURN fastpath_signal(word_t cptr, word_t msgInfo)
         ksKernelEntry.is_fastpath = true;
 #endif
         ntfn_set_active(ntfnPtr, badge | notification_ptr_get_ntfnMsgIdentifier(ntfnPtr));
+        userError("===========rest 44\n");
         restore_user_context();
         UNREACHABLE();
     case NtfnState_Idle:
@@ -615,6 +617,7 @@ void NORETURN fastpath_signal(word_t cptr, word_t msgInfo)
             ksKernelEntry.is_fastpath = true;
 #endif
             ntfn_set_active(ntfnPtr, badge);
+            userError("===========rest 55\n");
             restore_user_context();
             UNREACHABLE();
         }
@@ -709,7 +712,7 @@ void NORETURN fastpath_signal(word_t cptr, word_t msgInfo)
             SCHED_APPEND(dest);
         }
     }
-
+    userError("===========rest 66\n");
     restore_user_context();
 }
 #endif

@@ -63,7 +63,7 @@ static inline void FORCE_INLINE switchToThread_fp(tcb_t *thread, vspace_root_t *
 #ifdef CONFIG_BENCHMARK_TRACK_UTILISATION
     benchmark_utilisation_switch(NODE_STATE(ksCurThread), thread);
 #endif
-
+    userError("set 111, id:%i\n", (int)thread->id);
     NODE_STATE(ksCurThread) = thread;
 }
 
@@ -121,16 +121,17 @@ fastpath_mi_check(word_t msgInfo)
 
 static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t msgInfo, tcb_t *cur_thread)
 {
-    //UNREACHABLE();
     if (config_set(CONFIG_SYSENTER) && config_set(CONFIG_HARDWARE_DEBUG_API)
         && ((getRegister(NODE_STATE(ksCurThread), FLAGS) & FLAGS_TF) != 0)) {
         /* If single stepping using sysenter we need to do a return using iret to avoid
          * a race condition in restoring the flags (which enables stepping and interrupts) and
          * calling sysexit. This case is handled in restore_user_context so we just go there
          */
-        userError("===========rest 11\n");
         restore_user_context();
     }
+#ifdef CONFIG_X86_64_UINTR
+    switch_uintr_return();
+#endif    
     NODE_UNLOCK;
     c_exit_hook();
     lazyFPURestore(cur_thread);
@@ -217,6 +218,7 @@ static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t m
             : "memory"
         );
     } else {
+        userError("====2\n");
         asm volatile(
             // Set our stack pointer to the top of the tcb so we can efficiently pop
             "movq %0, %%rsp\n"

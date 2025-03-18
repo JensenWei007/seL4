@@ -183,7 +183,12 @@ void static switch_uintr_return(void)
 
 	if (upid->puir)
 	{
-		printf("puir is true ,should send ipi to id: %i, action: %i\n", (int)cur->id, (int)(NODE_STATE(ksSchedulerAction) == SchedulerAction_ChooseNewThread));
+		uint64_t rrr = 0;
+		asm volatile(
+			"movq %%rsp, %0"      // 将rsp寄存器的值移动到变量中
+        	: "=r" (rrr)    // 输出操作数约束
+		);
+		printf("puir is true ,should send ipi to id: %i, action: %i, RSP: %lx\n", (int)cur->id, (int)(NODE_STATE(ksSchedulerAction) == SchedulerAction_ChooseNewThread), (unsigned long)rrr);
 		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, cur_cpu);
 		printf("puir is true ,send ipi end\n");
 	}

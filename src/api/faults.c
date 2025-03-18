@@ -113,6 +113,7 @@ static inline void copyMRsFault(tcb_t *sender, tcb_t *receiver, MessageID_t id,
 
 bool_t handleFaultReply(tcb_t *receiver, tcb_t *sender)
 {
+    printf("========handleFaultReply\n");
     /* These lookups are moved inward from doReplyTransfer */
     seL4_MessageInfo_t tag = messageInfoFromWord(getRegister(sender, msgInfoRegister));
     word_t label = seL4_MessageInfo_get_label(tag);

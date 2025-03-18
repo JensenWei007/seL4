@@ -213,7 +213,6 @@ static void NORETURN restore_vmx(void)
 void VISIBLE NORETURN restore_user_context(void)
 {
 #ifdef CONFIG_X86_64_UINTR
-    //userError("now task id:%i\n", (int)NODE_STATE(ksCurThread)->id);
     switch_uintr_return();
 #endif
     NODE_UNLOCK_IF_HELD;

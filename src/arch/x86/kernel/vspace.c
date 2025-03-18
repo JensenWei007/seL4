@@ -572,6 +572,8 @@ exception_t handleVMFault(tcb_t *thread, vm_fault_type_t vm_faultType)
     addr = getFaultAddr();
     fault = getRegister(thread, Error);
 
+    userError("handleVMFault, addr: %lx, %lu\n", (unsigned long)addr, (unsigned long)fault);
+
     switch (vm_faultType) {
     case X86DataFault:
         current_fault = seL4_Fault_VMFault_new(addr, fault, false);

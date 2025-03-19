@@ -1,6 +1,8 @@
 The seL4 microkernel for x86_UINTR
 ====================
 
+# 新增特性
+
 ## 新增系统调用
 
 针对x86架构的用户态中断，增加下列系统调用：
@@ -71,3 +73,58 @@ sel4的测试用例见含有UINTR用例的sel4test: projects/sel4test/apps/sel4t
 
 输入参数：
 - seL4_Uint32 flags, 标志位，目前做保留以供未来拓展，目前必须为0
+
+# 已知问题与BUG
+
+## 多层函数嵌套后再进行系统调用导致在栈帧RSP错误时触发UINTR
+
+目前在单核情况下，也就是接收线程需要阻塞后让出调度去执行发送线程，此时用户态中断不会触发，会通过puir位置1来遗留一个中断，在接收线程即将进入用户态时（有点类似于信号的处理时机），会检测其puir位，如果不为0，说明有一个用户态中断被挂起了，需要重新触发一个中断。
+
+这种情况下，需要使用apic给自己发一个中断，代码为 `apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, cur_cpu);` 。这个中断会在硬件的执行过程中（在陷入内核态触发中断进入内核代码之前），提前检测并拦截此中断号，进入用户态中断处理流程。
+
+而此过程的跳转到中断处理函数是通过函数调用的方式完成的（也就是使用RSP压栈出栈），因此需要严格保证栈顶的正确性，否则会出现写入异常（VM FAULT）。
+
+这里经过验证，初步验证结论为，正确的栈顶应该是：在定义中断处理函数的文件中（也就是定义`static void __attribute__((interrupt)) uintr_handler(){}`的文件），pc指针必须位于此文件下的任意函数中（说人话就是必须完成系统调用的所有函数嵌套返回），此时的RSP指针是正确的。
+
+但是在sel4中，大概率会发生以下情况导致出现异常：
+
+Step    cpu 0 (receiver task)           cpu 0 (sender task)
+----    ---------------------           -------------------
+1       task is running
+2       function call1
+3       function call2
+4       block and schedule
+5                                       task is running
+6                                       executes SENDUIPI
+7                                       IPI sent
+8                                       task is end, schedule
+9       waken up, ret to user
+10      function call2 return
+11      IPI delivered
+12      go to uintr_handler
+
+这样会在function call1里执行用户态中断处理，导致RSP错误。
+
+正确的预期行为是：
+
+Step    cpu 0 (receiver task)           cpu 0 (sender task)
+----    ---------------------           -------------------
+1       task is running
+2       function call1
+3       function call2
+4       block and schedule
+5                                       task is running
+6                                       executes SENDUIPI
+7                                       IPI sent
+8                                       task is end, schedule
+9       waken up, ret to user
+10      function call2 return
+11      function call1 return   <================
+12      IPI delivered
+13      go to uintr_handler
+
+全部函数嵌套返回后IPI被发送过来，此时是正确的。
+
+> 经过验证，如果你的电脑性能比较好，qemu执行的快，那么大概率你会碰到异常情况，但是如果你的电脑比较卡，那么有一定的概率能执行成功（不会碰到异常）。不改变任何代码和环境，只是重复执行qemu run。
+
+> 此问题目前无解，这是硬件的问题。

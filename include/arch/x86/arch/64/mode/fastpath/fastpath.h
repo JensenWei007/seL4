@@ -63,7 +63,6 @@ static inline void FORCE_INLINE switchToThread_fp(tcb_t *thread, vspace_root_t *
 #ifdef CONFIG_BENCHMARK_TRACK_UTILISATION
     benchmark_utilisation_switch(NODE_STATE(ksCurThread), thread);
 #endif
-    userError("set 111, id:%i\n", (int)thread->id);
     NODE_STATE(ksCurThread) = thread;
 }
 
@@ -218,7 +217,6 @@ static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t m
             : "memory"
         );
     } else {
-        userError("====2\n");
         asm volatile(
             // Set our stack pointer to the top of the tcb so we can efficiently pop
             "movq %0, %%rsp\n"

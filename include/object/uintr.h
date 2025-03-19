@@ -190,7 +190,7 @@ void static switch_uintr_return(void)
 		);
 		printf("puir is true ,should send ipi to id: %i, action: %i, RSP: %lx\n", (int)cur->id, (int)(NODE_STATE(ksSchedulerAction) == SchedulerAction_ChooseNewThread), (unsigned long)rrr);
 		apic_send_ipi_core(UINTR_NOTIFICATION_VECTOR, cur_cpu);
-		printf("puir is true ,send ipi end\n");
+		//printf("puir is true ,send ipi end\n");
 	}
 }
 

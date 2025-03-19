@@ -22,6 +22,7 @@ void VISIBLE c_nested_interrupt(int irq)
     /* This is not a real entry point, so we do not grab locks or
      * run c_entry/exit_hooks, since this occurs only if we're already
      * running inside the kernel. Just record the irq and return */
+    if (irq != 157 &&irq != 48 &&irq != 7 )userError("c_nested_interrupt, irq: %i\n", irq);
     assert(ARCH_NODE_STATE(x86KSPendingInterrupt) == int_invalid);
     ARCH_NODE_STATE(x86KSPendingInterrupt) = irq;
 }
@@ -80,7 +81,7 @@ void VISIBLE NORETURN c_handle_interrupt(int irq, int syscall)
         handleInterruptEntry();
         /* check for other pending interrupts */
         receivePendingIRQ();
-    } else if (irq == int_spurious) {
+    } else if (irq == int_spurious || irq == 0xec) {
         /* fall through to restore_user_context and do nothing */
     } else {
         /* Interpret a trap as an unknown syscall */

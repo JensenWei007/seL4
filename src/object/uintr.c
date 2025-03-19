@@ -262,6 +262,7 @@ exception_t handle_SysUintrRegisterSender(void)
 
 exception_t handle_SysUintrUnRegisterSender(void)
 {
+    printf("================call handle_SysUintrUnRegisterSender\n");
     int32_t ipi_index = getSyscallArg(0, NULL);
     uint32_t flags = getSyscallArg(1, NULL);
 

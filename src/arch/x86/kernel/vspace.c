@@ -576,14 +576,17 @@ exception_t handleVMFault(tcb_t *thread, vm_fault_type_t vm_faultType)
 
     switch (vm_faultType) {
     case X86DataFault:
+        userError("hhh1\n");
         current_fault = seL4_Fault_VMFault_new(addr, fault, false);
         return EXCEPTION_FAULT;
 
     case X86InstructionFault:
+        userError("hhh2\n");
         current_fault = seL4_Fault_VMFault_new(addr, fault, true);
         return EXCEPTION_FAULT;
 
     default:
+        userError("hhh3\n");
         fail("Invalid VM fault type");
     }
 }

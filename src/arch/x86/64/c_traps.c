@@ -470,6 +470,7 @@ void VISIBLE NORETURN restore_user_context(void)
 void VISIBLE NORETURN c_x64_handle_interrupt(int irq, int syscall);
 void VISIBLE NORETURN c_x64_handle_interrupt(int irq, int syscall)
 {
+    if (irq != 157 &&irq != 48 &&irq != 7 )userError("c_x64_handle_interrupt, irq: %i\n", irq);
     if (config_set(CONFIG_KERNEL_X86_IBRS_BASIC)) {
         x86_enable_ibrs();
     }

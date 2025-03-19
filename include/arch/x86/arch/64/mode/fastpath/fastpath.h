@@ -217,6 +217,7 @@ static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t m
             : "memory"
         );
     } else {
+        userError("====2\n");
         asm volatile(
             // Set our stack pointer to the top of the tcb so we can efficiently pop
             "movq %0, %%rsp\n"
@@ -247,6 +248,9 @@ static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t m
 #endif /* defined(ENABLE_SMP_SUPPORT) && defined(CONFIG_KERNEL_SKIM_WINDOW) */
             // clear RSP to not leak information to the user
             "xor %%rsp, %%rsp\n"
+#if defined(CONFIG_X86_64_UINTR)
+            "movq %%rbx, %%rsp\n"
+#endif
             // More register but we can ignore and are done restoring
             // enable interrupt disabled by sysenter
             "sysretq\n"

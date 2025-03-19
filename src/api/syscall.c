@@ -247,21 +247,16 @@ exception_t handleUserLevelFault(word_t w_a, word_t w_b)
 
 exception_t handleVMFaultEvent(vm_fault_type_t vm_faultType)
 {
-    printf("========handleVMFaultEvent, cur id: %i, RSP: %lx\n", (int)NODE_STATE(ksCurThread)->id, getRegister(NODE_STATE(ksCurThread), RSP));
     MCS_DO_IF_BUDGET({
 
         exception_t status = handleVMFault(NODE_STATE(ksCurThread), vm_faultType);
         if (status != EXCEPTION_NONE)
-        {
-            printf("fail to handle\n");
             handleFault(NODE_STATE(ksCurThread));
-        }
     })
 
     schedule();
     activateThread();
 
-    printf("========handleVMFaultEvent end, cur id: %i\n", (int)NODE_STATE(ksCurThread)->id);
     return EXCEPTION_NONE;
 }
 

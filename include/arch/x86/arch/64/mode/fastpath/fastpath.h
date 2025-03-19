@@ -217,7 +217,6 @@ static inline void NORETURN FORCE_INLINE fastpath_restore(word_t badge, word_t m
             : "memory"
         );
     } else {
-        userError("====2\n");
         asm volatile(
             // Set our stack pointer to the top of the tcb so we can efficiently pop
             "movq %0, %%rsp\n"

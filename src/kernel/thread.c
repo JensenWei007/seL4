@@ -370,7 +370,6 @@ void schedule(void)
         }
 
         if (NODE_STATE(ksSchedulerAction) == SchedulerAction_ChooseNewThread) {
-            //printf("will scheduleChooseNewThread\n");
             scheduleChooseNewThread();
         } else {
             tcb_t *candidate = NODE_STATE(ksSchedulerAction);
@@ -382,7 +381,6 @@ void schedule(void)
             bool_t fastfail =
                 NODE_STATE(ksCurThread) == NODE_STATE(ksIdleThread)
                 || (candidate->tcbPriority < NODE_STATE(ksCurThread)->tcbPriority);
-            //printf("f: %i, ish: %i, wr: %i, ct: %i\n", (int)fastfail, (int)isHighestPrio(ksCurDomain, candidate->tcbPriority), (int)was_runnable, (int)(candidate->tcbPriority == NODE_STATE(ksCurThread)->tcbPriority));
             if (fastfail &&
                 !isHighestPrio(ksCurDomain, candidate->tcbPriority)) {
                 SCHED_ENQUEUE(candidate);
@@ -398,7 +396,6 @@ void schedule(void)
                 scheduleChooseNewThread();
             } else {
                 assert(candidate != NODE_STATE(ksCurThread));
-                //printf("===11111, id:%i, actionis: %i\n", (int)NODE_STATE(ksSchedulerAction)->id, (int)(NODE_STATE(ksSchedulerAction) == SchedulerAction_ChooseNewThread));
                 switchToThread(candidate);
             }
         }

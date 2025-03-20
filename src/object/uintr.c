@@ -39,8 +39,6 @@ static exception_t do_uintr_register_vector(uint64_t uvec)
     tcb_queue_t queue = NODE_STATE(ksUintrQueues);
     NODE_STATE(ksUintrQueues) = tcb_queue_prepend(queue, cur);
 
-    //printf("fd, queue is empty: %i\n", (int)tcb_queue_empty(NODE_STATE(ksUintrQueues)));
-
     //printf("call vectorfd, ret: %lu \n", (unsigned long)cur->id);
     setRegister(cur, badgeRegister, cur->id);
 
@@ -203,8 +201,6 @@ exception_t handle_SysUintrRegisterSender(void)
     }
 
     tcb_t *t = FindUintrTcbById(uvec_fd);
-    //tcb_t *t = getTcbById(uvec_fd);
-    //printf("Find task id: %i\n", (int)t->id);
     tcb_t* cur = NODE_STATE(ksCurThread);
     uint64_t uvec = t->uvec;
     struct uintr_upid_ctx *upid_ctx = &t->upid_ctx;

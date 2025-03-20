@@ -97,7 +97,6 @@ static inline void tcb_queue_insert(tcb_t *tcb, tcb_t *after)
 }
 
 #ifdef CONFIG_X86_64_UINTR
-tcb_t* getTcbById(int64_t id);
 tcb_t* FindUintrTcbById(int64_t id);
 #endif
 

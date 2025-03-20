@@ -270,51 +270,25 @@ tcb_queue_t tcbEPDequeue(tcb_t *tcb, tcb_queue_t queue)
 }
 
 #ifdef CONFIG_X86_64_UINTR
-tcb_t* getTcbById(int64_t id)
-{
-    printf("NODES: %lu, QUEUES: %lu\n", (unsigned long)CONFIG_MAX_NUM_NODES, (unsigned long)NUM_READY_QUEUES);
-    for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
-    {
-        tcb_t* ret = NODE_STATE_ON_CORE(ksCurThread, cpuIndexToID(i));
-        printf("cur id: %i \n",(int)ret->id);
-        if (ret->id == id)
-            return ret;
-    }
-    for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
-        for (int32_t j = 0; j<NUM_READY_QUEUES; j++)
-        {
-            tcb_queue_t q = NODE_STATE_ON_CORE(ksReadyQueues[j], cpuIndexToID(i));
-            if (tcb_queue_empty(q))
-                continue;
-            tcb_t *before = q.end;
-            tcb_t *after = NULL;
-            while (unlikely(before != NULL)) {
-                printf("before id: %i \n",(int)before->id);
-                if (before->id == id)
-                    return before;
-                after = before;
-                before = after->tcbSchedPrev;
-            }
-        }
-    printf("will return cur\n");
-    return NODE_STATE(ksCurThread);
-}
-
 tcb_t* FindUintrTcbById(int64_t id)
 {
-    tcb_queue_t q = NODE_STATE(ksUintrQueues);
-    if (tcb_queue_empty(q))
+    for (int32_t i = 0; i<CONFIG_MAX_NUM_NODES; i++)
     {
-        printf("FindUintrTcbById error, queue is empty!\n");
-    }
-    tcb_t *before = q.end;
-    tcb_t *after = NULL;
-    while (unlikely(before != NULL)) {
-        printf("before id: %i \n",(int)before->id);
-        if (before->id == id)
-            return before;
-        after = before;
-        before = after->tcbSchedPrev;
+        tcb_queue_t q = NODE_STATE_ON_CORE(ksUintrQueues, cpuIndexToID(i));
+        if (tcb_queue_empty(q))
+        {
+            printf("FindUintrTcbById error, queue is empty!\n");
+            continue;
+        }
+        tcb_t *before = q.end;
+        tcb_t *after = NULL;
+        while (unlikely(before != NULL)) {
+            printf("before id: %i \n",(int)before->id);
+            if (before->id == id)
+                return before;
+            after = before;
+            before = after->tcbSchedPrev;
+        }
     }
     printf("FindUintrTcbById error, should not reach here!\n");
     return NODE_STATE(ksCurThread);

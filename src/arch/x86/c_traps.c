@@ -140,6 +140,13 @@ void NORETURN slowpath(syscall_t syscall)
     UNREACHABLE();
 }
 
+VISIBLE void print_c_test(void);
+extern void print_rust_test(void);
+
+VISIBLE void print_c_test(void) {
+    printf("=================== RUST ============\n");
+}
+
 #ifdef CONFIG_KERNEL_MCS
 void VISIBLE NORETURN c_handle_syscall(word_t cptr, word_t msgInfo, syscall_t syscall, word_t reply)
 #else
@@ -182,6 +189,7 @@ void VISIBLE NORETURN c_handle_syscall(word_t cptr, word_t msgInfo, syscall_t sy
         UNREACHABLE();
     }
 #endif /* CONFIG_FASTPATH */
+    print_rust_test();
     slowpath(syscall);
     UNREACHABLE();
 }

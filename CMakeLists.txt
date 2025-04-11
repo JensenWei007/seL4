@@ -707,7 +707,7 @@ target_include_directories(kernel.elf PRIVATE include)
 target_include_directories(kernel.elf PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/generated")
 target_link_libraries(kernel.elf PRIVATE kernel_Config kernel_autoconf)
 set_property(TARGET kernel.elf APPEND_STRING PROPERTY LINK_FLAGS " -Wl,-T ${linker_lds_path} ")
-set_property(TARGET kernel.elf APPEND_STRING PROPERTY LINK_FLAGS " -L${CMAKE_CURRENT_BINARY_DIR} -l:libarch_x86.a ")
+set_property(TARGET kernel.elf APPEND_STRING PROPERTY LINK_FLAGS " -L${CMAKE_CURRENT_BINARY_DIR} -Wl,--start-group -l:libarch_x86.a -Wl,--end-group ")
 set_target_properties(kernel.elf PROPERTIES LINK_DEPENDS "${linker_lds_path}")
 add_dependencies(kernel.elf circular_includes)
 

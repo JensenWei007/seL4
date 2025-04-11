@@ -147,6 +147,12 @@ VISIBLE void print_c_test(void) {
     printf("=================== RUST ============\n");
 }
 
+/*
+/usr/bin/gcc --sysroot=/home/wjx/sel4/build-x86 -m64  -D__KERNEL_64__ -march=nehalem -O2 -g -DNDEBUG -D__KERNEL_64__ -march=nehalem  -Wl,-m,elf_x86_64  -static -Wl,--build-id=none -Wl,-n -O2  -nostdlib  -fno-pic  -fno-pie  -DDEBUG  -g  -ggdb  -mcmodel=kernel     -Wl,-T /home/wjx/sel4/build-x86/kernel/linker.lds_pp  -L/home/wjx/sel4/build-x86/kernel -Wl,--start-group -l:libarch_x86.a -Wl,--end-group kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/multiboot.S.obj kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/64/machine_asm.S.obj kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/64/traps.S.obj kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/64/head.S.obj kernel/CMakeFiles/kernel.elf.dir/kernel_all.c.obj -o kernel/kernel.elf
+
+/usr/bin/gcc --sysroot=/home/wjx/sel4/build-x86 -m64  -D__KERNEL_64__ -march=nehalem -O2 -g -DNDEBUG -D__KERNEL_64__ -march=nehalem  -Wl,-m,elf_x86_64  -static -Wl,--build-id=none -Wl,-n -O2  -nostdlib  -fno-pic  -fno-pie  -DDEBUG  -g  -ggdb  -mcmodel=kernel     -Wl,-T /home/wjx/sel4/build-x86/kernel/linker.lds_pp  -L/home/wjx/sel4/build-x86/kernel kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/multiboot.S.obj kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/64/machine_asm.S.obj kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/64/traps.S.obj kernel/CMakeFiles/kernel.elf.dir/src/arch/x86/64/head.S.obj kernel/CMakeFiles/kernel.elf.dir/kernel_all.c.obj -Wl,--start-group -l:libarch_x86.a -Wl,--end-group -o kernel/kernel.elf
+*/
+
 #ifdef CONFIG_KERNEL_MCS
 void VISIBLE NORETURN c_handle_syscall(word_t cptr, word_t msgInfo, syscall_t syscall, word_t reply)
 #else
